@@ -1179,7 +1179,7 @@
       text-align: center;
       font-size: .95rem;
       color: var(--text-s);
-      max-width: 340px;
+      width: 100%;
     }
     .chess-board-wrap {
       position: relative;
@@ -1487,7 +1487,7 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     // All valid German words formable from these 8 letters (A E E I N R S T)
     validWords: [
       'EIS','NIE','TIER','EINS','SEIN','ERST','TEER','TEE', 'EINE','REIS','EIER',
-      'EI','SEE','NASE','NEST','REIN','RATE','RASE','STEIN','STERN','STIER','ERNST',
+      'EI', 'SEE', 'NASE', 'NEST', 'REIN', 'RATE', 'RASE', 'STEIN', 'STERN', 'STIER', 'ERNST',
       'RESTE','RASTE','ASTER','ARTEN','RATEN','RIESE','REISE','ERSTE',
       'SEITE','EINER','TIERE','REINE','SEINE','NIERE','EISEN','NIETE',
       'NESTER','REISEN','STERNE','RIESEN','ERSTEN','SEITEN',
@@ -1513,7 +1513,7 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     icon:  '♟',
     title: 'Schach-Rätsel!',
     description: 'Weiß ist am Zug – kannst du in zwei Zügen Schachmatt geben?',
-    hint:  'Die Dame kann sich opfern… und dann macht der Springer auf f7 Schachmatt! 🐴',
+    hint:  'Die Dame kann sich opfern… 🐴',
     pieces: [
       { row:7, col:6, type:'K', color:'w' }, // Kg1
       { row:2, col:4, type:'Q', color:'w' }, // Qe6
@@ -1775,10 +1775,10 @@ function renderWordRiddle(stage, card) {
          <input id="riddle-input" class="answer-input"
                 type="text" placeholder="Schreib deine Antwort hier…"
                 onkeydown="if(event.key==='Enter')checkRiddle(${idx})">
-         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
-         <div class="hint-box" id="hint-box">${stage.hint}</div>
          <div class="msg" id="riddle-msg"></div>
-         <button class="btn btn-gold btn-sm" onclick="checkRiddle(${idx})">Antwort prüfen ✓</button>`
+         <button class="btn btn-gold btn-sm" onclick="checkRiddle(${idx})">Antwort prüfen ✓</button>
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>`
     }
   </div>`;
 
@@ -1934,10 +1934,10 @@ function renderListen(stage, card) {
          <input id="listen-input" class="answer-input"
                 type="text" placeholder="Schreib deine Antwort hier…"
                 onkeydown="if(event.key==='Enter')checkListen(${idx})">
-         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
-         <div class="hint-box" id="hint-box">${stage.hint}</div>
          <div class="msg" id="listen-msg"></div>
-         <button class="btn btn-gold btn-sm" onclick="checkListen(${idx})">Antwort prüfen ✓</button>`
+         <button class="btn btn-gold btn-sm" onclick="checkListen(${idx})">Antwort prüfen ✓</button>
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>`
     }
   </div>`;
 
@@ -2045,32 +2045,38 @@ async function qrHandlePhoto(e, idx) {
   try {
     const bitmap = await createImageBitmap(file);
 
-    // Helper: draw bitmap to canvas with optional CSS filter, return ImageData
-    function getImageData(bmp, filter, scale) {
-      const w = Math.round(bmp.width  * scale);
-      const h = Math.round(bmp.height * scale);
+    // Cap to 800px max — phone cameras are 8-12MP but QR codes need ~600px max.
+    // This makes every pass fast; the early break handles the rest.
+    const MAX = 400;
+    const ratio = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+    const baseW = Math.round(bitmap.width  * ratio);
+    const baseH = Math.round(bitmap.height * ratio);
+
+    // Helper: draw pre-scaled bitmap to canvas with optional CSS filter, return ImageData
+    function getImageData(filter, scale) {
+      const w = Math.round(baseW * scale);
+      const h = Math.round(baseH * scale);
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
       const ctx = c.getContext('2d');
       if (filter) ctx.filter = filter;
-      ctx.drawImage(bmp, 0, 0, w, h);
+      ctx.drawImage(bitmap, 0, 0, w, h);
       return ctx.getImageData(0, 0, w, h);
     }
 
-    // Multi-pass attempts: different filters × scales
+    // Multi-pass attempts — stops immediately on first success
     const passes = [
-      { filter: null,                                   scale: 1    },
-      { filter: 'grayscale(1) contrast(1.8)',           scale: 1    },
-      { filter: 'grayscale(1) contrast(2.5) brightness(1.1)', scale: 1 },
-      { filter: 'grayscale(1) contrast(1.8)',           scale: 0.5  },
-      { filter: 'grayscale(1) contrast(2.5)',           scale: 0.75 },
-      { filter: 'grayscale(1) contrast(2) invert(1)',   scale: 1    },
-      { filter: 'grayscale(1) contrast(2) invert(1)',   scale: 0.5  },
+      { filter: null,                                         scale: 1    },
+      { filter: 'grayscale(1) contrast(1.8)',                 scale: 1    },
+      { filter: 'grayscale(1) contrast(2.5) brightness(1.1)', scale: 1   },
+      { filter: 'grayscale(1) contrast(2) invert(1)',         scale: 1    },
+      { filter: 'grayscale(1) contrast(2.5)',                 scale: 0.75 },
+      { filter: 'grayscale(1) contrast(2) invert(1)',         scale: 0.75 },
     ];
 
     let result = null;
     for (const { filter, scale } of passes) {
-      const idata = getImageData(bitmap, filter, scale);
+      const idata = getImageData(filter, scale);
       result = jsQR(idata.data, idata.width, idata.height, { inversionAttempts: 'attemptBoth' });
       if (result) break;
     }
@@ -2215,7 +2221,7 @@ function checkScrabbleWord(idx) {
   }
 
   // Not a valid word
-  if (!stage.validWords.includes(word)) {
+  if (!stage.validWords.some(w => w.toUpperCase().trim() === word)) {
     showScrabbleMsg(msg, 'err', `"${word}" ist kein gültiges Wort – versuch's nochmal!`);
     shakeInput(input); return;
   }
@@ -2286,10 +2292,10 @@ function renderEggCount(stage, card) {
       ? `<div class="msg ok show">🎉 Genau richtig! Du hast den rosa Hasen erwischt!</div>`
       : `<p class="input-label" style="margin-top:18px">${stage.question}</p>
          <div class="egg-count-inputs">${inputs}</div>
-         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
-         <div class="hint-box" id="hint-box">${stage.hint}</div>
          <div class="msg" id="egg-msg"></div>
-         <button class="btn btn-gold btn-sm" onclick="checkEggCount(${idx})">Antwort prüfen ✓</button>`
+         <button class="btn btn-gold btn-sm" onclick="checkEggCount(${idx})">Antwort prüfen ✓</button>
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>`
     }
     ${solved ? `<div class="egg-count-inputs" style="margin-top:18px;pointer-events:none">${inputs}</div>` : ''}
   </div>`;
@@ -2974,14 +2980,13 @@ function renderChess(stage, card) {
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Schach</p>
     <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
-    <p class="chess-desc">${stage.description}</p>
-
     <div class="chess-outer">
+      <p class="chess-desc">${stage.description}</p>
       <div class="chess-board-wrap" id="chess-board-wrap"><div class="chess-board" id="chess-board"></div></div>
-      <p class="chess-coords" id="chess-coords">&nbsp;</p>
-      <p class="chess-err" id="chess-err"></p>
       <button class="chess-hint-btn" onclick="document.getElementById('chess-hint').style.display='block';this.style.display='none';">💡 Hinweis anzeigen</button>
       <p id="chess-hint" style="display:none;font-size:.85rem;color:var(--text-s);text-align:center;max-width:300px;">${stage.hint}</p>
+      <p class="chess-coords" id="chess-coords">&nbsp;</p>
+      <p class="chess-err" id="chess-err"></p>
     </div>
 
     ${solved ? `<div class="success-banner">♟ Schachmatt! Wunderbar! 🎉</div>` : ''}
