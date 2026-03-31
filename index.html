@@ -1035,14 +1035,15 @@
       background: var(--cream2);
       border-right:  1px solid #c8b090;
       border-bottom: 1px solid #c8b090;
-      cursor: pointer;
       user-select: none;
+      touch-action: none;
       -webkit-tap-highlight-color: transparent;
-      transition: background .1s;
+      transition: background .1s, box-shadow .1s;
     }
-    .sudoku-cell.locked   { background: #ede4d0; cursor: default; }
-    .sudoku-cell.selected { background: #fff3a8 !important; }
-    .sudoku-cell.wrong    { background: #ffd8d8 !important; }
+    .sudoku-cell.locked    { background: #ede4d0; }
+    .sudoku-cell.wrong     { background: #ffd8d8 !important; }
+    .sudoku-cell.drag-over { background: #fff3a8 !important;
+                             box-shadow: inset 0 0 0 2.5px var(--gold); }
     .sudoku-cell.box-right  { border-right:  2.5px solid var(--brown); }
     .sudoku-cell.box-bottom { border-bottom: 2.5px solid var(--brown); }
     .sudoku-cell.last-col   { border-right:  none; }
@@ -1054,29 +1055,45 @@
       justify-content: center;
     }
     .sudoku-sym-btn {
-      width: 48px; height: 48px;
+      width: 52px; height: 52px;
       border-radius: 12px;
       border: 2px solid #c8b090;
       background: var(--cream2);
-      font-size: 1.4rem;
-      cursor: pointer;
+      font-size: 1.5rem;
+      cursor: grab;
+      touch-action: none;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 2px 6px var(--shadow);
       -webkit-tap-highlight-color: transparent;
-      transition: background .1s, transform .1s;
+      transition: transform .1s, box-shadow .1s;
     }
-    .sudoku-sym-btn:active { background: var(--yellow); transform: scale(.92); }
+    .sudoku-sym-btn:active { transform: scale(.92); }
     .sudoku-erase-btn {
-      width: 48px; height: 48px;
+      width: 52px; height: 52px;
       border-radius: 12px;
-      border: 2px solid #c8b090;
+      border: 2px solid #e0a0a0;
       background: #f8e8e8;
-      font-size: 1.1rem;
-      cursor: pointer;
+      font-size: 1.2rem;
+      cursor: grab;
+      touch-action: none;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 2px 6px var(--shadow);
       color: #c04040;
       -webkit-tap-highlight-color: transparent;
+    }
+    .sudoku-drag-ghost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      font-size: 1.7rem;
+      width: 52px; height: 52px;
+      background: var(--yellow);
+      border: 2.5px solid var(--gold);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,.28);
+      transform: scale(1.18);
+      user-select: none;
     }
     .sudoku-hint {
       font-size: .8rem;
@@ -2579,24 +2596,20 @@ function renderSudoku(stage, card) {
   const solved = state.solved.has(idx);
 
   if (!state.sudokuGrid[idx])  state.sudokuGrid[idx]  = stage.puzzle.map(r => [...r]);
-  if (!state.sudokuSel[idx])   state.sudokuSel[idx]   = null;
   if (!state.sudokuWrong[idx]) state.sudokuWrong[idx] = new Set();
 
   const grid  = state.sudokuGrid[idx];
-  const sel   = state.sudokuSel[idx];
   const wrong = state.sudokuWrong[idx];
 
   let cells = '';
   for (let r = 0; r < 6; r++) {
     for (let c = 0; c < 6; c++) {
-      const val      = grid[r][c];
-      const locked   = stage.puzzle[r][c] !== 0;
-      const selected = sel && sel.row === r && sel.col === c;
-      const sym      = val ? stage.symbols[val - 1] : '';
+      const val    = grid[r][c];
+      const locked = stage.puzzle[r][c] !== 0;
+      const sym    = val ? stage.symbols[val - 1] : '';
 
       const cls = ['sudoku-cell',
-        locked   ? 'locked'     : 'user',
-        selected ? 'selected'   : '',
+        locked ? 'locked' : 'user',
         wrong.has(`${r},${c}`) ? 'wrong' : '',
         c === 2              ? 'box-right'  : '',
         (r === 1 || r === 3) ? 'box-bottom' : '',
@@ -2604,14 +2617,14 @@ function renderSudoku(stage, card) {
         r === 5 ? 'last-row' : '',
       ].filter(Boolean).join(' ');
 
-      cells += `<div class="${cls}" onclick="sudokuClick(${idx},${r},${c})">${sym}</div>`;
+      cells += `<div class="${cls}" data-r="${r}" data-c="${c}">${sym}</div>`;
     }
   }
 
   const allFilled = grid.every(row => row.every(v => v !== 0));
 
   const palette = stage.symbols.map((sym, i) =>
-    `<button class="sudoku-sym-btn" onclick="sudokuPlace(${idx},${i+1})">${sym}</button>`
+    `<button class="sudoku-sym-btn" data-val="${i + 1}">${sym}</button>`
   ).join('');
 
   card.innerHTML = `<div class="stage-inner">
@@ -2626,10 +2639,10 @@ function renderSudoku(stage, card) {
 
       <div class="sudoku-palette">
         ${palette}
-        <button class="sudoku-erase-btn" onclick="sudokuPlace(${idx},0)" title="Löschen">✕</button>
+        <button class="sudoku-erase-btn" data-val="0" title="Löschen">✕</button>
       </div>
 
-      <p class="sudoku-hint">Tippe ein Feld an, dann wähle ein Symbol.</p>
+      <p class="sudoku-hint">Symbol anfassen und auf ein Feld ziehen. ✕ löscht ein Feld.</p>
       <p class="sudoku-err" id="sudoku-err"></p>
 
       ${allFilled && !solved
@@ -2638,22 +2651,76 @@ function renderSudoku(stage, card) {
       ${solved ? `<div class="success-banner">🧩 Perfekt gelöst! Wunderbar! 🎉</div>` : ''}
     </div>
   </div>`;
+
+  if (!solved) initSudokuDrag(idx);
 }
 
-function sudokuClick(idx, r, c) {
-  if (state.solved.has(idx)) return;
-  if (STAGES[idx].puzzle[r][c] !== 0) return; // locked cell
-  state.sudokuSel[idx] = { row: r, col: c };
-  renderSudoku(STAGES[idx], document.getElementById('stage-card'));
+let _sdqDrag = null;
+
+function initSudokuDrag(idx) {
+  document.querySelectorAll('.sudoku-sym-btn, .sudoku-erase-btn').forEach(btn => {
+    btn.addEventListener('pointerdown', e => {
+      if (state.solved.has(idx)) return;
+      e.preventDefault();
+      const val = +btn.dataset.val;
+      const sym = btn.textContent.trim();
+      sudokuBeginDrag(e, idx, val, sym);
+    });
+  });
 }
 
-function sudokuPlace(idx, val) {
-  if (state.solved.has(idx)) return;
-  const sel = state.sudokuSel[idx];
-  if (!sel) return;
-  state.sudokuGrid[idx][sel.row][sel.col] = val;
-  if (state.sudokuWrong[idx]) state.sudokuWrong[idx].delete(`${sel.row},${sel.col}`);
-  renderSudoku(STAGES[idx], document.getElementById('stage-card'));
+function sudokuBeginDrag(e, idx, val, sym) {
+  const ghost = document.createElement('div');
+  ghost.className = 'sudoku-drag-ghost';
+  ghost.textContent = sym;
+  document.body.appendChild(ghost);
+  _sdqDrag = { ghost };
+  sudokuMoveGhost(e.clientX, e.clientY);
+
+  function onMove(ev) {
+    ev.preventDefault();
+    sudokuMoveGhost(ev.clientX, ev.clientY);
+
+    // Highlight cell under finger (hide ghost first so it doesn't block hit-test)
+    ghost.style.display = 'none';
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    ghost.style.display = '';
+
+    document.querySelectorAll('.sudoku-cell.drag-over')
+      .forEach(c => c.classList.remove('drag-over'));
+    const cell = under && under.closest('.sudoku-cell');
+    if (cell && !cell.classList.contains('locked')) cell.classList.add('drag-over');
+  }
+
+  function onEnd(ev) {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup',   onEnd);
+    ghost.remove();
+    document.querySelectorAll('.sudoku-cell.drag-over')
+      .forEach(c => c.classList.remove('drag-over'));
+    _sdqDrag = null;
+
+    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const cell  = under && under.closest('.sudoku-cell');
+    if (!cell || cell.classList.contains('locked')) return;
+
+    const r = +cell.dataset.r;
+    const c = +cell.dataset.c;
+    if (isNaN(r) || isNaN(c)) return;
+
+    state.sudokuGrid[idx][r][c] = val;
+    if (state.sudokuWrong[idx]) state.sudokuWrong[idx].delete(`${r},${c}`);
+    renderSudoku(STAGES[idx], document.getElementById('stage-card'));
+  }
+
+  document.addEventListener('pointermove', onMove, { passive: false });
+  document.addEventListener('pointerup',   onEnd);
+}
+
+function sudokuMoveGhost(x, y) {
+  if (!_sdqDrag) return;
+  _sdqDrag.ghost.style.left = (x - 26) + 'px';
+  _sdqDrag.ghost.style.top  = (y - 58) + 'px';
 }
 
 function sudokuCheck(idx) {
