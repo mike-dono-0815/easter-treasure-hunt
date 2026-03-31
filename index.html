@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Die Suche nach dem Osternest 🐣</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Design tokens ── */
+    :root {
+      --sky1:     #aed8f0;
+      --sky2:     #cce8f4;
+      --cream1:   #fdf5e8;
+      --cream2:   #fffcf5;
+      --pink:     #f4b8c8;
+      --lavender: #cbb8e8;
+      --yellow:   #f5e060;
+      --green:    #b4e0a0;
+      --blue:     #a8ccf0;
+      --peach:    #f8ccac;
+      --gold:     #e8a820;
+      --gold-lt:  #f5c840;
+      --brown:    #7a5030;
+      --brown-lt: #a87050;
+      --text:     #3c2818;
+      --text-s:   #7a5040;
+      --shadow:   rgba(80,40,10,.13);
+      --r-card:   24px;
+      --r-pill:   50px;
+    }
+
+    /* ── Body / background ── */
+    body {
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(170deg, var(--sky1) 0%, var(--sky2) 22%, var(--cream1) 58%, var(--cream2) 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* subtle decorative egg blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      opacity: .07;
+      pointer-events: none;
+      animation: bgFloat 9s ease-in-out infinite;
+      z-index: 0;
+    }
+    body::before { width:220px; height:290px; background:var(--pink);     top:-40px;  left:-50px; }
+    body::after  { width:170px; height:220px; background:var(--lavender); bottom:30px;right:-40px; animation-delay:-4.5s; }
+    @keyframes bgFloat {
+      0%,100% { transform: translateY(0)    rotate(-4deg); }
+      50%     { transform: translateY(-18px) rotate(4deg); }
+    }
+
+    /* ── Screen management ── */
+    .screen       { display: none; position: relative; z-index: 1; }
+    .screen.active{ display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+    /* ════════════════════════════
+       INTRO SCREEN
+    ════════════════════════════ */
+    #screen-intro {
+      justify-content: center;
+      padding: 36px 20px;
+      gap: 0;
+    }
+    .intro-card {
+      background: rgba(255,252,245,.93);
+      border-radius: var(--r-card);
+      box-shadow: 0 10px 48px var(--shadow);
+      overflow: hidden;
+      max-width: 720px;
+      width: 100%;
+      border: 2px solid rgba(255,255,255,.85);
+    }
+    .intro-card img { width:100%; display:block; }
+    .intro-footer {
+      padding: 22px 28px 28px;
+      text-align: center;
+    }
+    .intro-tagline {
+      font-size: 1.05rem;
+      color: var(--text-s);
+      font-style: italic;
+      margin-bottom: 22px;
+      line-height: 1.6;
+    }
+
+    /* ════════════════════════════
+       BUTTONS
+    ════════════════════════════ */
+    .btn {
+      font-family: 'Fredoka One', cursive;
+      border: none;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      letter-spacing: .3px;
+    }
+    .btn:disabled { opacity:.4; cursor:not-allowed; transform:none !important; }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.18);
+      box-shadow: 0 4px 18px rgba(232,168,32,.42), inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .btn-gold:not(:disabled):hover  { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(232,168,32,.52), inset 0 1px 0 rgba(255,255,255,.28); }
+    .btn-gold:not(:disabled):active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.75);
+      color: var(--text-s);
+      border: 2px solid rgba(200,165,120,.45);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      box-shadow: 0 2px 8px var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+    .btn-ghost:not(:disabled):hover  { background:#fff; border-color:rgba(200,165,120,.8); }
+
+    .btn-sm  { font-size:1rem;   padding:11px 28px; }
+    .btn-md  { font-size:1.1rem; padding:13px 36px; }
+    .btn-lg  { font-size:1.4rem; padding:16px 54px; }
+
+    /* ════════════════════════════
+       GAME SCREEN
+    ════════════════════════════ */
+    #screen-game {
+      padding: 28px 16px 52px;
+      gap: 22px;
+    }
+    .game-wrap {
+      width: 100%;
+      max-width: 880px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* ── Progress bar ── */
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-label {
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--brown-lt);
+      opacity: .7;
+    }
+    .progress-bar {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 32px;
+      background: rgba(255,255,255,.65);
+      border-radius: var(--r-pill);
+      box-shadow: 0 2px 16px var(--shadow);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255,255,255,.82);
+    }
+    .progress-bar { padding-bottom: 10px; }
+    .egg-pg { transition: transform .4s cubic-bezier(.34,1.56,.64,1), filter .4s; overflow: visible; }
+    .egg-pg.current { transform: scale(1.18); filter: drop-shadow(0 3px 8px rgba(232,168,32,.55)); }
+    .egg-pg.done    { filter: drop-shadow(0 2px 6px rgba(100,190,100,.45)); }
+
+    /* ── Stage card ── */
+    .stage-card {
+      background: rgba(255,252,245,.93);
+      border-radius: var(--r-card);
+      box-shadow: 0 4px 32px var(--shadow);
+      padding: 34px 38px;
+      border: 1.5px solid rgba(255,255,255,.85);
+      backdrop-filter: blur(14px);
+    }
+    @media (max-width:600px) { .stage-card { padding:22px 18px; } }
+
+    .stage-inner { animation: stageIn .38s ease; }
+    @keyframes stageIn {
+      from { opacity:.3; transform: translateY(10px); }
+      to   { opacity:1;  transform: translateY(0); }
+    }
+
+    .eyebrow {
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #9878d0;
+      margin-bottom: 6px;
+    }
+    .stage-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.95rem;
+      color: var(--brown);
+      margin-bottom: 22px;
+      line-height: 1.15;
+    }
+
+    /* ── Nav bar ── */
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    /* ════════════════════════════
+       WORD RIDDLE
+    ════════════════════════════ */
+    .riddle-scroll {
+      background: linear-gradient(135deg,#fef3e0,#fde8cc);
+      border-radius: 16px;
+      padding: 22px 26px;
+      margin-bottom: 22px;
+      border-left: 4px solid var(--gold);
+      position: relative;
+      overflow: hidden;
+    }
+    .riddle-scroll::after {
+      content: '🐰';
+      position: absolute;
+      top:-6px; right:14px;
+      font-size: 3rem;
+      opacity: .12;
+      pointer-events: none;
+    }
+    .riddle-text {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--text);
+      font-style: italic;
+      white-space: pre-line;
+    }
+
+    .input-label {
+      font-size: .82rem;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-s);
+      margin-bottom: 8px;
+    }
+    .answer-input {
+      width: 100%;
+      padding: 13px 18px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: 2.5px solid #e4ccb0;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 12px;
+    }
+    .answer-input:focus  { border-color:var(--gold); box-shadow:0 0 0 3px rgba(232,168,32,.15); }
+    .answer-input.wrong  { border-color:#e06868; box-shadow:0 0 0 3px rgba(224,104,104,.15); animation: shake .38s ease; }
+    .answer-input.ok     { border-color:#60b860; box-shadow:0 0 0 3px rgba(96,184,96,.15); }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      20%,60% { transform:translateX(-8px); }
+      40%,80% { transform:translateX(8px); }
+    }
+
+    .btn-hint {
+      background: none;
+      border: none;
+      font-family: 'Nunito', sans-serif;
+      font-size: .87rem;
+      font-weight: 700;
+      color: #9878d0;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 12px;
+      transition: color .15s;
+    }
+    .btn-hint:hover { color:#7050b8; }
+
+    .hint-box {
+      display: none;
+      background: #f0e8fc;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: .92rem;
+      color: #7050b8;
+      font-style: italic;
+      margin-bottom: 14px;
+    }
+    .hint-box.open { display: block; }
+
+    .msg {
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: .95rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.ok  { background:#d8f0d8; color:#286828; border:1.5px solid #78c878; }
+    .msg.err { background:#f0d8d8; color:#782828; border:1.5px solid #c87878; }
+
+    /* ════════════════════════════
+       QR SCAN
+    ════════════════════════════ */
+    .qr-egg-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin: 22px 0;
+    }
+    .qr-egg-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .qr-egg-circle {
+      width: 68px; height: 82px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-family: 'Fredoka One', cursive;
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s;
+    }
+    .qr-egg-circle.empty {
+      background: #e8ddd0;
+      border: 3px solid #c8b8a8;
+      color: #a89888;
+      font-size: 1.3rem;
+    }
+    .qr-egg-circle.found {
+      border: 3px solid transparent;
+      color: #fff;
+      transform: scale(1.12);
+      box-shadow: 0 6px 20px rgba(80,40,10,.22);
+      animation: eggPop .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    /* cycle through egg palette colours */
+    .qr-egg-circle.found:nth-child(1) { background: linear-gradient(160deg,#f4b8c8,#d888a8); }
+    .qr-egg-slot:nth-child(1) .qr-egg-circle.found { background: linear-gradient(160deg,#f4b8c8,#d888a8); }
+    .qr-egg-slot:nth-child(2) .qr-egg-circle.found { background: linear-gradient(160deg,#cbb8e8,#a888d0); }
+    .qr-egg-slot:nth-child(3) .qr-egg-circle.found { background: linear-gradient(160deg,#f5e060,#d8c020); }
+    .qr-egg-slot:nth-child(4) .qr-egg-circle.found { background: linear-gradient(160deg,#a8d0f4,#78a8e0); }
+    .qr-egg-slot:nth-child(5) .qr-egg-circle.found { background: linear-gradient(160deg,#b4e0a0,#80c060); }
+    .qr-egg-slot:nth-child(6) .qr-egg-circle.found { background: linear-gradient(160deg,#f8ccac,#e89060); }
+    @keyframes eggPop {
+      0%   { transform: scale(.4) rotate(-15deg); opacity: 0; }
+      60%  { transform: scale(1.22) rotate(5deg);  opacity: 1; }
+      100% { transform: scale(1.12) rotate(0deg);  opacity: 1; }
+    }
+    .qr-egg-label {
+      font-size: .75rem;
+      font-weight: 800;
+      color: var(--text-s);
+      letter-spacing: .5px;
+    }
+
+    .qr-counter {
+      text-align: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      color: var(--brown);
+      margin-bottom: 6px;
+    }
+    .qr-counter span { color: var(--gold); }
+
+    .qr-scan-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .qr-scan-btn-wrap label.btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .qr-scan-btn-wrap label.btn input { display: none; }
+
+    .qr-feedback {
+      min-height: 44px;
+      text-align: center;
+    }
+
+    .qr-manual-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .qr-manual-row .answer-input {
+      flex: 1;
+      margin-bottom: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* ════════════════════════════
+       SCRABBLE
+    ════════════════════════════ */
+    .scrabble-letters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .scrabble-tile {
+      width: 54px; height: 60px;
+      background: linear-gradient(160deg, #fdf0c8, #f0d878);
+      border: 2px solid #c8a030;
+      border-bottom: 5px solid #a87820;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: var(--brown);
+      box-shadow: 0 3px 8px rgba(80,40,10,.18);
+      user-select: none;
+      position: relative;
+    }
+    .scrabble-tile-num {
+      position: absolute;
+      bottom: 4px; right: 6px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .6rem;
+      font-weight: 800;
+      color: var(--brown-lt);
+    }
+
+    .scrabble-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .scrabble-input-row .answer-input {
+      flex: 1;
+      margin-bottom: 0;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 1.3rem;
+    }
+    .scrabble-input-row .btn { flex-shrink: 0; }
+
+    .scrabble-found-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      min-height: 40px;
+    }
+    .scrabble-word-chip {
+      background: linear-gradient(135deg, #d8f0d8, #b8e8b8);
+      border: 2px solid #78c878;
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.05rem;
+      color: #286828;
+      letter-spacing: 1px;
+      animation: markerPop .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    .scrabble-progress {
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--text-s);
+      margin-bottom: 6px;
+    }
+    .scrabble-progress strong {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: var(--brown);
+    }
+
+    /* ════════════════════════════
+       EGG COUNT
+    ════════════════════════════ */
+    .egg-count-photo {
+      width: 100%;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px var(--shadow);
+      display: block;
+      margin-bottom: 22px;
+    }
+    .egg-count-inputs {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .egg-count-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 90px;
+    }
+    .egg-count-label {
+      font-size: .85rem;
+      font-weight: 800;
+      color: var(--text-s);
+      text-align: center;
+    }
+    .egg-count-input {
+      width: 100%;
+      padding: 12px 10px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      text-align: center;
+      border: 2.5px solid #e4ccb0;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .egg-count-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(232,168,32,.15); }
+    .egg-count-input.wrong { border-color: #e06868; box-shadow: 0 0 0 3px rgba(224,104,104,.15); animation: shake .38s ease; }
+    .egg-count-input.ok    { border-color: #60b860; box-shadow: 0 0 0 3px rgba(96,184,96,.15); }
+
+    /* ════════════════════════════
+       ORIGAMI
+    ════════════════════════════ */
+    .origami-video-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 */
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+      background: #000;
+    }
+    .origami-video-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .origami-step-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .origami-step-nav .btn { flex: 1; }
+
+    /* photo capture */
+    .origami-photo-zone {
+      border: 3px dashed #c8b08c;
+      border-radius: 18px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      background: #fffbf4;
+      margin-bottom: 18px;
+    }
+    .origami-photo-zone:hover { border-color: var(--gold); background: #fff8ec; }
+    .origami-photo-zone input { display: none; }
+    .origami-photo-zone-icon { font-size: 3.2rem; margin-bottom: 10px; }
+    .origami-photo-zone-label {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.15rem;
+      color: var(--brown);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .origami-photo-zone-sub {
+      font-size: .85rem;
+      color: var(--text-s);
+    }
+
+    /* polaroid frame */
+    .origami-polaroid {
+      background: #fff;
+      border-radius: 4px;
+      padding: 14px 14px 48px;
+      box-shadow: 0 8px 32px rgba(80,40,10,.22), 0 2px 8px rgba(80,40,10,.1);
+      transform: rotate(-1.5deg);
+      max-width: 360px;
+      margin: 0 auto 24px;
+      position: relative;
+    }
+    .origami-polaroid img {
+      width: 100%;
+      display: block;
+      border-radius: 2px;
+    }
+    .origami-polaroid-caption {
+      position: absolute;
+      bottom: 10px; left: 0; right: 0;
+      text-align: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.05rem;
+      color: var(--brown);
+      letter-spacing: .3px;
+    }
+    .origami-amazing {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.4rem;
+      text-align: center;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      animation: bounceIn .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    .origami-amazing-sub {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--text-s);
+      margin-bottom: 22px;
+    }
+
+    /* ════════════════════════════
+       LISTEN
+    ════════════════════════════ */
+    .listen-player-wrap {
+      background: linear-gradient(135deg, #1a1a2e, #2d1b4e);
+      border-radius: 18px;
+      padding: 28px 24px 22px;
+      margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 6px 28px rgba(80,40,10,.22);
+      position: relative;
+      overflow: hidden;
+    }
+    .listen-player-wrap::before {
+      content: '🎵';
+      position: absolute;
+      font-size: 7rem;
+      opacity: .06;
+      top: -10px; right: -10px;
+      pointer-events: none;
+    }
+    .listen-note-row {
+      display: flex;
+      gap: 10px;
+      font-size: 1.6rem;
+      animation: noteFloat 2.4s ease-in-out infinite;
+    }
+    @keyframes noteFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+    .listen-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: #e8d0f8;
+      letter-spacing: .5px;
+      text-align: center;
+    }
+    .listen-player-wrap audio {
+      width: 100%;
+      border-radius: 10px;
+      outline: none;
+    }
+    /* tint the native audio control on supported browsers */
+    .listen-player-wrap audio::-webkit-media-controls-panel { background: #2d1b4e; }
+
+    /* ════════════════════════════
+       FIND DIFFERENCE
+    ════════════════════════════ */
+    .diff-instructions {
+      font-size: .98rem;
+      color: var(--text-s);
+      margin-bottom: 16px;
+      line-height: 1.65;
+    }
+    .diff-score-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .diff-score-label {
+      font-size: .84rem;
+      font-weight: 700;
+      color: var(--text-s);
+    }
+    .diff-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #e0d0c0;
+      border: 2.5px solid #c8b0a0;
+      transition: background .3s, border-color .3s, transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .diff-dot.found { background:#60b860; border-color:#48a048; transform:scale(1.25); }
+
+    .diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width:600px) { .diff-grid { grid-template-columns:1fr; } }
+
+    .diff-wrap {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .diff-wrap.clickable { cursor: crosshair; }
+    .diff-wrap.clickable:hover { box-shadow: 0 4px 28px rgba(80,40,10,.22); }
+    .diff-wrap img {
+      width: 100%;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .diff-badge {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(255,252,245,.88);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--brown);
+      backdrop-filter: blur(4px);
+    }
+
+    .marker {
+      position: absolute;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+      animation: markerPop .35s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .marker.found { border:3px solid #48a048; background:rgba(96,184,96,.28); }
+    .marker.wrong { border:3px solid #e06868; background:rgba(224,104,104,.22);
+                    animation: markerPop .35s cubic-bezier(.34,1.56,.64,1) forwards, markerFade .5s ease .65s forwards; }
+    @keyframes markerPop {
+      from { transform:translate(-50%,-50%) scale(.15); opacity:0; }
+      to   { transform:translate(-50%,-50%) scale(1);   opacity:1; }
+    }
+    @keyframes markerFade { to { opacity:0; } }
+
+    /* countdown progress bar */
+    .diff-countdown-bar {
+      height: 12px;
+      background: #e0d0c0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+    .diff-countdown-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-lt), var(--gold));
+      border-radius: 6px;
+      width: 100%;
+    }
+    .diff-countdown-label {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-s);
+      margin-top: 8px;
+    }
+    .diff-countdown-label strong {
+      font-size: 1.4rem;
+      color: var(--brown);
+    }
+
+    /* bunny flash */
+    .diff-bunny-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 0;
+    }
+    .diff-bunny-wrap img {
+      max-width: 100%;
+      max-height: 60vh;
+      object-fit: contain;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px var(--shadow);
+      animation: bunnyPop .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes bunnyPop {
+      from { transform: scale(.7); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+
+    /* after phase – single full-width image */
+    .diff-replay-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* debug zone overlay */
+    .dbg-zone {
+      position: absolute;
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+      background: rgba(255,200,0,.32);
+      border: 2.5px dashed rgba(220,140,0,.75);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: rgba(120,60,0,.85);
+    }
+
+    /* ════════════════════════════
+       PRIZE SCREEN
+    ════════════════════════════ */
+    #screen-prize {
+      justify-content: center;
+      padding: 36px 20px;
+      overflow: hidden;
+    }
+    .prize-card {
+      background: rgba(255,252,245,.96);
+      border-radius: var(--r-card);
+      box-shadow: 0 10px 56px rgba(80,40,10,.2);
+      padding: 52px 44px;
+      text-align: center;
+      max-width: 580px;
+      width: 100%;
+      z-index: 10;
+      position: relative;
+      border: 2px solid rgba(255,255,255,.9);
+    }
+    .prize-eggs { display:flex; justify-content:center; gap:14px; margin-bottom:28px; }
+    .prize-trophy { font-size:5rem; margin-bottom:16px; animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes bounceIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+    .prize-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.9rem;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+      line-height: 1.1;
+    }
+    .prize-msg {
+      font-size: 1.1rem;
+      color: var(--text-s);
+      line-height: 1.75;
+      margin-bottom: 34px;
+    }
+
+    /* ── Confetti ── */
+    .confetti-piece {
+      position: fixed;
+      border-radius: 2px;
+      opacity: 0;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+      z-index: 5;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(-60px) rotate(0deg);   opacity:1; }
+      85%  { opacity:1; }
+      100% { transform: translateY(108vh) rotate(720deg); opacity:0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════ INTRO ══════════════ -->
+  <div id="screen-intro" class="screen active">
+    <div style="max-width:720px;width:100%;padding:36px 20px;display:flex;flex-direction:column;align-items:center;">
+      <div class="intro-card">
+        <img src="Title_AR.png" alt="Die Suche nach dem Osternest">
+        <div class="intro-footer">
+          <p class="intro-tagline">
+            Löse jedes Rätsel, folge den Hinweisen und entdecke den Osterschatz! 🌸
+          </p>
+          <button class="btn btn-gold btn-lg" onclick="startGame()">🐣 Das Abenteuer beginnt!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ GAME ══════════════ -->
+  <div id="screen-game" class="screen">
+    <div class="game-wrap">
+
+      <div class="progress-section">
+        <span class="progress-label">Dein Osterweg</span>
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="stage-card" id="stage-card">
+        <!-- rendered by JS -->
+      </div>
+
+      <div class="nav-bar">
+        <button class="btn btn-ghost btn-sm" id="btn-back"  onclick="goBack()">← Zurück</button>
+        <button class="btn btn-gold  btn-md" id="btn-next"  onclick="goNext()">Weiter →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ PRIZE ══════════════ -->
+  <div id="screen-prize" class="screen">
+    <div class="prize-card">
+      <div class="prize-eggs" id="prize-eggs"></div>
+      <div class="prize-trophy">🏆</div>
+      <h1 class="prize-title">Du hast es gefunden! 🌸</h1>
+      <p class="prize-msg">
+        Fantastisch — du hast jedes Rätsel gelöst und bist<br>
+        dem Osterhasen bis ans Ende gefolgt!<br><br>
+        🎉 Frohe Ostern! 🐰
+      </p>
+      <button class="btn btn-gold btn-lg" onclick="startGame()">Nochmal spielen 🔄</button>
+    </div>
+  </div>
+
+<script>
+/* ═══════════════════════════════════════
+   STAGE CONFIGURATION
+   ═══════════════════════════════════════ */
+
+const STAGES = [
+  {
+    type:    'WORD_RIDDLE',
+    icon:    '🐰',
+    title:   'Ein Rätsel vom Osterhasen',
+    riddle:  `Bunt bemalt und gut versteckt,
+warte ich, bis du mich entdeckst.
+Im Garten, im Haus, hinter Busch und Stein –
+wer findet mich wohl? Das bist du allein!
+
+Was bin ich?`,
+    answers: ['ei', 'osterei', 'ein ei', 'das osterei', 'ein osterei', 'die ostereier', 'ostereier'],
+    hint:    'Am Ostermorgen suche ich dich im Garten! 🌸',
+  },
+  {
+    type:             'FIND_DIFFERENCE',
+    icon:             '🔍',
+    title:            'Finde die Unterschiede!',
+    instructions:     'Der Osterhase hat 6 heimliche Änderungen vorgenommen. Kannst du sie alle im veränderten Bild finden? Klicke auf jeden Unterschied!',
+    imageBefore:      'BeforeAR.png',
+    imageAfter:       'AfterAR.png',
+    totalDifferences: 6,
+    //
+    // ⚠️  TODO: replace x/y with the real difference locations once identified.
+    //     x, y  = fraction (0–1) of image width / height
+    //     r     = click-tolerance radius as fraction of image width
+    //     Press [D] during the game to see the zones highlighted.
+    //
+    differences: [
+      { x: 0.07, y: 0.58, r: 0.07 },  // px (69,  597)
+      { x: 0.19, y: 0.67, r: 0.07 },  // px (199, 686)
+      { x: 0.59, y: 0.75, r: 0.07 },  // px (602, 770)
+      { x: 0.92, y: 0.64, r: 0.07 },  // px (937, 659)
+      { x: 0.84, y: 0.53, r: 0.07 },  // px (858, 543)
+      { x: 0.80, y: 0.43, r: 0.07 },  // px (815, 437)
+    ],
+  },
+  {
+    type:  'EGG_COUNT',
+    icon:  '🐇',
+    title: 'Der rosa Hase im Garten',
+    image: 'TheTreeCR.jpg',
+    story: `Im Garten, ganz nah beim Vogelhaus,
+soll ein rosa Häschen lugen heraus.
+Es hat Ostereier gemopst – o je!
+Wie viele hat es gefressen? Das weißt nur du, he he!`,
+    hint:  'Schau genau beim Vogelhaus im Bild – der rosa Hase versteckt sich dort ganz in der Nähe! 🌸',
+    question: 'Wie viele Eier hat der rosa Hase gefressen?',
+    labels:   ['Rote Eier 🔴', 'Grüne Eier 🟢', 'Blaue Eier 🔵'],
+    answers:  [2, 0, 1],
+  },
+  {
+    type:    'LISTEN',
+    icon:    '🎵',
+    title:   'Hör ganz genau hin!',
+    audio:   'Hoppe_durch_den_Garten.mp4',
+    audioFallback: 'Hoppe_durch_den_Garten.mp3',
+    story:   'Im Lied versteckt sich ein Geheimnis… Hör ganz genau hin und finde heraus, wer durch den Garten hopst!',
+    hint:    'Wer bringt den Kindern bunte Eier? 🥚',
+    answers: ['osterhase', 'der osterhase', 'ein osterhase'],
+  },
+  {
+    type:    'ORIGAMI',
+    icon:    '🐰',
+    title:   'Falte deinen Osterhasen!',
+    videoId: 'k-O8KHC5XwI',
+  },
+  {
+    type:         'SCRABBLE',
+    icon:         '🔤',
+    title:        'Wörter-Rätsel',
+    letters:      ['A','E','E','I','N','R','S','T'],
+    wordsNeeded:  5,
+    // All valid German words formable from these 8 letters (A E E I N R S T)
+    validWords: [
+      'EIS','NIE','TIER','EINS','SEIN','ERST','TEER','TEE', 'EINE','REIS','EIER',
+      'NASE','NEST','REIN','RATE','RASE','STEIN','STERN','STIER','ERNST',
+      'RESTE','RASTE','ASTER','ARTEN','RATEN','RIESE','REISE','ERSTE',
+      'SEITE','EINER','TIERE','REINE','SEINE','NIERE','EISEN','NIETE',
+      'NESTER','REISEN','STERNE','RIESEN','ERSTEN','SEITEN',
+    ],
+  },
+  {
+    type:  'QR_SCAN',
+    icon:  '📱',
+    title: 'QR-Code-Jagd!',
+    total: 6,
+    // ── Each physical QR code should encode one of these exact values ──
+    // Generate free QR codes at e.g. https://www.qrcode-monkey.com/
+    codes: ['OSTEREI-1','OSTEREI-2','OSTEREI-3','OSTEREI-4','OSTEREI-5','OSTEREI-6'],
+  },
+];
+
+/* ═══════════════════════════════════════
+   EGG SVG FACTORY
+   ═══════════════════════════════════════ */
+
+const EGG_PALETTE = [
+  { fill:'#f4b8c8', stroke:'#d888a8', band:'#c070a0' },  // pink
+  { fill:'#cbb8e8', stroke:'#a888d0', band:'#9060c8' },  // lavender
+  { fill:'#f5e060', stroke:'#d8c020', band:'#c09810' },  // yellow
+  { fill:'#a8d0f4', stroke:'#78a8e0', band:'#5888d0' },  // blue
+  { fill:'#b4e0a0', stroke:'#80c060', band:'#58a040' },  // green
+];
+
+function eggSVG(idx, st) {
+  const c       = EGG_PALETTE[idx % EGG_PALETTE.length];
+  const isDone  = st.solved.has(idx);
+  const isCurr  = st.current === idx;
+  const locked  = idx > st.current && !isDone;
+
+  const fill   = locked ? '#e0d4c4' : c.fill;
+  const stroke = locked ? '#c0b0a0' : c.stroke;
+  const band   = locked ? '#d0c0b0' : c.band;
+
+  const dots = isDone
+    ? `<circle cx="18" cy="22" r="4.5" fill="${band}" opacity=".55"/>
+       <circle cx="32" cy="40" r="3.5" fill="${band}" opacity=".5"/>
+       <circle cx="14" cy="40" r="3"   fill="${band}" opacity=".45"/>`
+    : '';
+
+  const bounce = isCurr && !isDone
+    ? `<animateTransform attributeName="transform" type="translate"
+         values="0,0;0,-4;0,0" dur="1.2s" repeatCount="indefinite"/>`
+    : '';
+
+  return `<svg class="egg-pg ${isDone ? 'done' : ''} ${isCurr ? 'current' : ''}"
+    width="46" height="60" viewBox="0 0 46 60" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="23" cy="36" rx="19" ry="25" fill="${fill}" stroke="${stroke}" stroke-width="2.2"/>
+    <path d="M6 32 Q12 39 23 35 Q34 31 40 33"
+          stroke="${band}" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    ${dots}
+    ${bounce}
+  </svg>`;
+}
+
+/* ═══════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════ */
+
+const state = {
+  current:        0,
+  solved:         new Set(),
+  diffFound:      {},   // { stageIdx: Set<diffIndex> }
+  diffPhase:      {},   // { stageIdx: 'before'|'after' }
+  origamiStep:    {},   // { stageIdx: 0-15 }
+  origamiPhoto:   {},   // { stageIdx: dataURL }
+  scrabbleFound:  {},   // { stageIdx: Set<word> }
+  qrScanned:      {},   // { stageIdx: Set<code> }
+};
+
+// Timers for the before→bunny→after sequence
+let _diffTimeouts  = [];
+let _diffCountdown = null;
+
+function clearDiffTimers() {
+  _diffTimeouts.forEach(t => clearTimeout(t));
+  _diffTimeouts = [];
+  if (_diffCountdown) { clearInterval(_diffCountdown); _diffCountdown = null; }
+}
+
+/* ═══════════════════════════════════════
+   SCREEN HELPERS
+   ═══════════════════════════════════════ */
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startGame() {
+  state.current      = 0;
+  state.solved.clear();
+  state.diffFound    = {};
+  state.diffPhase    = {};
+  state.origamiStep    = {};
+  state.origamiPhoto   = {};
+  state.scrabbleFound  = {};
+  state.qrScanned      = {};
+  showScreen('screen-game');
+  render();
+}
+
+/* ═══════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════ */
+
+function refreshProgress() {
+  document.getElementById('progress-bar').innerHTML =
+    STAGES.map((_, i) => eggSVG(i, state)).join('');
+}
+
+/* ═══════════════════════════════════════
+   NAV BUTTONS
+   ═══════════════════════════════════════ */
+
+function refreshNav() {
+  const back = document.getElementById('btn-back');
+  const next = document.getElementById('btn-next');
+
+  back.disabled = state.current === 0;
+  next.disabled = !state.solved.has(state.current);
+
+  const lastStage = state.current === STAGES.length - 1;
+  next.textContent = (lastStage && state.solved.has(state.current))
+    ? '🏆 Hol deinen Preis!'
+    : 'Weiter →';
+}
+
+/* ═══════════════════════════════════════
+   MAIN RENDER DISPATCHER
+   ═══════════════════════════════════════ */
+
+function render() {
+  clearDiffTimers();
+  refreshProgress();
+  refreshNav();
+
+  const stage = STAGES[state.current];
+  const card  = document.getElementById('stage-card');
+
+  if (stage.type === 'WORD_RIDDLE')     renderWordRiddle(stage, card);
+  if (stage.type === 'FIND_DIFFERENCE') renderFindDiff(stage, card);
+  if (stage.type === 'EGG_COUNT')       renderEggCount(stage, card);
+  if (stage.type === 'LISTEN')          renderListen(stage, card);
+  if (stage.type === 'ORIGAMI')         renderOrigami(stage, card);
+  if (stage.type === 'SCRABBLE')        renderScrabble(stage, card);
+  if (stage.type === 'QR_SCAN')         renderQrScan(stage, card);
+}
+
+/* ═══════════════════════════════════════
+   WORD RIDDLE
+   ═══════════════════════════════════════ */
+
+function renderWordRiddle(stage, card) {
+  const idx     = state.current;
+  const solved  = state.solved.has(idx);
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Rätsel</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+
+    <div class="riddle-scroll">
+      <p class="riddle-text">${stage.riddle}</p>
+    </div>
+
+    ${solved
+      ? `<div class="msg ok show">🎉 Richtig! Du hast das Rätsel gelöst!</div>`
+      : `<p class="input-label">Deine Antwort</p>
+         <input id="riddle-input" class="answer-input"
+                type="text" placeholder="Schreib deine Antwort hier…"
+                onkeydown="if(event.key==='Enter')checkRiddle(${idx})">
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>
+         <div class="msg" id="riddle-msg"></div>
+         <button class="btn btn-gold btn-sm" onclick="checkRiddle(${idx})">Antwort prüfen ✓</button>`
+    }
+  </div>`;
+
+  if (!solved) document.getElementById('riddle-input').focus();
+}
+
+function toggleHint() {
+  const box = document.getElementById('hint-box');
+  const btn = document.querySelector('.btn-hint');
+  box.classList.toggle('open');
+  btn.textContent = box.classList.contains('open') ? '💡 Hinweis verstecken' : '💡 Brauchst du einen Hinweis?';
+}
+
+function checkRiddle(idx) {
+  const input = document.getElementById('riddle-input');
+  const msg   = document.getElementById('riddle-msg');
+  const stage = STAGES[idx];
+  const val   = input.value.trim().toLowerCase();
+
+  if (stage.answers.includes(val)) {
+    input.classList.replace('wrong', 'ok') || input.classList.add('ok');
+    input.disabled = true;
+    msg.className = 'msg ok show';
+    msg.textContent = '🎉 Richtig! Du hast das Rätsel gelöst!';
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+  } else {
+    input.classList.remove('wrong');
+    void input.offsetWidth;                 // force reflow for re-animation
+    input.classList.add('wrong');
+    msg.className = 'msg err show';
+    msg.textContent = '🐰 Knapp daneben — versuch es nochmal!';
+    setTimeout(() => input.classList.remove('wrong'), 450);
+  }
+}
+
+/* ═══════════════════════════════════════
+   ORIGAMI
+   ═══════════════════════════════════════ */
+
+function renderOrigami(stage, card) {
+  const idx   = state.current;
+  const phase = state.origamiStep[idx] ?? 0; // 0 = video, 1 = photo
+  if (phase === 0) {
+    renderOrigamiVideo(stage, card, idx);
+  } else {
+    renderOrigamiPhoto(stage, card, idx);
+  }
+}
+
+function renderOrigamiVideo(stage, card, idx) {
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Origami</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p class="diff-instructions">Schau dir das Video an und falte deinen eigenen Papier-Osterhasen nach. Du brauchst ein quadratisches Blatt Papier!</p>
+    <div class="origami-video-wrap">
+      <iframe src="https://www.youtube.com/embed/${stage.videoId}?rel=0"
+              title="Origami Osterhase"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+    </div>
+    <div class="origami-step-nav" style="margin-top:20px">
+      <button class="btn btn-gold btn-md" style="width:100%" onclick="origamiGo(${idx},1)">
+        Fertig gefaltet – Foto aufnehmen 📷
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderOrigamiPhoto(stage, card, idx) {
+  const photo = state.origamiPhoto[idx];
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Origami</p>
+    <h2 class="stage-title">${stage.icon} Zeig dein Werk!</h2>
+
+    ${photo ? `
+      <p class="origami-amazing">⭐ Amazing! ⭐</p>
+      <p class="origami-amazing-sub">Dein Origami-Osterhase ist wunderschön geworden! 🐰✨</p>
+      <div class="origami-polaroid">
+        <img src="${photo}" alt="Mein Origami-Hase">
+        <span class="origami-polaroid-caption">Mein Origami-Hase 🐣</span>
+      </div>
+      <div class="msg ok show" style="text-align:center">🎉 Weiter geht's – drücke "Weiter" unten!</div>
+    ` : `
+      <p class="diff-instructions">Super! Mach jetzt ein Foto von deinem fertigen Origami-Osterhasen.</p>
+      <label class="origami-photo-zone">
+        <div class="origami-photo-zone-icon">📷</div>
+        <span class="origami-photo-zone-label">Foto aufnehmen oder auswählen</span>
+        <span class="origami-photo-zone-sub">Tippe hier, um die Kamera zu öffnen</span>
+        <input type="file" accept="image/*" capture="environment" onchange="origamiPhotoTaken(event,${idx})">
+      </label>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="origamiGo(${idx},0)">← Zurück zum Video</button>
+    `}
+  </div>`;
+}
+
+function origamiGo(idx, phase) {
+  state.origamiStep[idx] = phase;
+  const stage = STAGES[idx];
+  const card  = document.getElementById('stage-card');
+  renderOrigami(stage, card);
+  window.scrollTo(0, 0);
+}
+
+function origamiPhotoTaken(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state.origamiPhoto[idx] = ev.target.result;
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+    const stage = STAGES[idx];
+    const card  = document.getElementById('stage-card');
+    renderOrigamiPhoto(stage, card, idx);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════
+   LISTEN
+   ═══════════════════════════════════════ */
+
+function renderListen(stage, card) {
+  const idx    = state.current;
+  const solved = state.solved.has(idx);
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Lied</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+
+    <div class="listen-player-wrap">
+      <div class="listen-note-row">🎶 🐣 🎶</div>
+      <p class="listen-title">Hoppe durch den Garten</p>
+      <video controls preload="metadata" style="width:100%;border-radius:10px;display:block">
+        <source src="${stage.audio}" type="video/mp4">
+        <source src="${stage.audioFallback}" type="audio/mpeg">
+      </video>
+    </div>
+
+    <div class="riddle-scroll">
+      <p class="riddle-text">${stage.story}</p>
+    </div>
+
+    ${solved
+      ? `<div class="msg ok show" style="margin-top:16px">🎉 Richtig! Der Osterhase hopst durch den Garten!</div>`
+      : `<p class="input-label" style="margin-top:18px">Deine Antwort</p>
+         <input id="listen-input" class="answer-input"
+                type="text" placeholder="Schreib deine Antwort hier…"
+                onkeydown="if(event.key==='Enter')checkListen(${idx})">
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>
+         <div class="msg" id="listen-msg"></div>
+         <button class="btn btn-gold btn-sm" onclick="checkListen(${idx})">Antwort prüfen ✓</button>`
+    }
+  </div>`;
+
+  if (!solved) document.getElementById('listen-input').focus();
+}
+
+function checkListen(idx) {
+  const input = document.getElementById('listen-input');
+  const msg   = document.getElementById('listen-msg');
+  const stage = STAGES[idx];
+  const val   = input.value.trim().toLowerCase();
+
+  if (stage.answers.includes(val)) {
+    input.classList.replace('wrong', 'ok') || input.classList.add('ok');
+    input.disabled = true;
+    msg.className = 'msg ok show';
+    msg.textContent = '🎉 Richtig! Der Osterhase hopst durch den Garten!';
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+  } else {
+    input.classList.remove('wrong');
+    void input.offsetWidth;
+    input.classList.add('wrong');
+    msg.className = 'msg err show';
+    msg.textContent = '🐰 Knapp daneben — hör nochmal genau hin!';
+    setTimeout(() => input.classList.remove('wrong'), 450);
+  }
+}
+
+/* ═══════════════════════════════════════
+   QR SCAN
+   ═══════════════════════════════════════ */
+
+const QR_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
+
+function renderQrScan(stage, card) {
+  const idx    = state.current;
+  if (!state.qrScanned[idx]) state.qrScanned[idx] = new Set();
+  const scanned = state.qrScanned[idx];
+  const solved  = state.solved.has(idx);
+  const count   = scanned.size;
+  const total   = stage.total;
+
+  const slots = Array.from({ length: total }, (_, i) => {
+    const done = i < count;
+    return `<div class="qr-egg-slot">
+      <div class="qr-egg-circle ${done ? 'found' : 'empty'}">
+        ${done ? '🥚' : (i + 1)}
+      </div>
+      <span class="qr-egg-label">${done ? 'Gefunden!' : 'Offen'}</span>
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; QR-Code-Jagd</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+
+    <p class="diff-instructions">
+      Der Osterhase hat <strong>${total} QR-Codes</strong> im Haus versteckt!
+      Finde sie alle und fotografiere jeden Code mit der Kamera.
+    </p>
+
+    <div class="qr-counter">
+      <span>${count}</span> / ${total} gefunden
+    </div>
+
+    <div class="qr-egg-grid">${slots}</div>
+
+    ${solved
+      ? `<div class="msg ok show">🎉 Alle ${total} QR-Codes gefunden! Weiter geht's!</div>`
+      : `<div class="qr-scan-btn-wrap">
+           <label class="btn btn-gold btn-md">
+             📷 QR-Code scannen
+             <input type="file" accept="image/*" capture="environment"
+                    onchange="qrHandlePhoto(event, ${idx})">
+           </label>
+         </div>
+         <div class="qr-feedback">
+           <div class="msg" id="qr-msg"></div>
+         </div>
+         <details style="margin-top:8px">
+           <summary style="cursor:pointer;font-size:.82rem;color:var(--text-s);font-weight:700">
+             📝 Code manuell eingeben (falls Kamera nicht klappt)
+           </summary>
+           <div class="qr-manual-row" style="margin-top:10px">
+             <input id="qr-manual" class="answer-input" type="text"
+                    placeholder="z.B. OSTEREI-3" autocomplete="off" autocorrect="off"
+                    onkeydown="if(event.key==='Enter')qrManualSubmit(${idx})">
+             <button class="btn btn-ghost btn-sm" onclick="qrManualSubmit(${idx})">OK</button>
+           </div>
+         </details>`
+    }
+  </div>`;
+}
+
+async function qrHandlePhoto(e, idx) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Reset input so same code can be re-tried if needed
+  e.target.value = '';
+
+  const msg = document.getElementById('qr-msg');
+
+  // Try BarcodeDetector (Chrome/Edge/Safari 17+)
+  if ('BarcodeDetector' in window) {
+    try {
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      const bitmap   = await createImageBitmap(file);
+      const codes    = await detector.detect(bitmap);
+      if (codes.length === 0) {
+        showQrMsg(msg, 'err', '🔍 Kein QR-Code erkannt – halte die Kamera näher ran!');
+        return;
+      }
+      qrValidate(codes[0].rawValue.trim().toUpperCase(), idx);
+    } catch {
+      showQrMsg(msg, 'err', '⚠️ Scan fehlgeschlagen – bitte manuell eingeben.');
+    }
+  } else {
+    // BarcodeDetector not available → prompt manual entry
+    showQrMsg(msg, 'err', '📝 Automatischer Scan nicht verfügbar – bitte Code manuell eingeben.');
+    const manual = document.getElementById('qr-manual');
+    if (manual) { manual.focus(); }
+  }
+}
+
+function qrManualSubmit(idx) {
+  const input = document.getElementById('qr-manual');
+  if (!input) return;
+  const val = input.value.trim().toUpperCase();
+  input.value = '';
+  qrValidate(val, idx);
+}
+
+function qrValidate(rawValue, idx) {
+  const stage   = STAGES[idx];
+  const scanned = state.qrScanned[idx];
+  const msg     = document.getElementById('qr-msg');
+  const code    = rawValue.toUpperCase();
+
+  if (!stage.codes.includes(code)) {
+    showQrMsg(msg, 'err', `❌ "${rawValue}" ist kein gültiger Osterei-Code!`);
+    return;
+  }
+  if (scanned.has(code)) {
+    showQrMsg(msg, 'err', `🔄 Diesen Code hast du schon gefunden!`);
+    return;
+  }
+
+  // ✓ New valid code
+  scanned.add(code);
+
+  if (scanned.size >= stage.total) {
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+  }
+
+  renderQrScan(stage, document.getElementById('stage-card'));
+
+  // Flash a quick success message after re-render
+  const newMsg = document.getElementById('qr-msg');
+  if (newMsg) {
+    showQrMsg(newMsg, 'ok',
+      scanned.size >= stage.total
+        ? `🎉 Alle ${stage.total} QR-Codes gefunden!`
+        : `✅ Code #${scanned.size} gefunden! Noch ${stage.total - scanned.size} übrig.`
+    );
+  }
+}
+
+function showQrMsg(el, type, text) {
+  if (!el) return;
+  el.className = `msg ${type} show`;
+  el.textContent = text;
+  setTimeout(() => { if (el) el.className = 'msg'; }, 3000);
+}
+
+/* ═══════════════════════════════════════
+   SCRABBLE
+   ═══════════════════════════════════════ */
+
+function canFormWord(word, letters) {
+  const pool = [...letters];
+  for (const ch of word.toUpperCase()) {
+    const i = pool.indexOf(ch);
+    if (i === -1) return false;
+    pool.splice(i, 1);
+  }
+  return true;
+}
+
+function renderScrabble(stage, card) {
+  const idx    = state.current;
+  if (!state.scrabbleFound[idx]) state.scrabbleFound[idx] = new Set();
+  const found  = state.scrabbleFound[idx];
+  const solved = state.solved.has(idx);
+  const needed = stage.wordsNeeded;
+
+  const tiles = stage.letters.map(l =>
+    `<div class="scrabble-tile">${l}<span class="scrabble-tile-num">1</span></div>`
+  ).join('');
+
+  const chips = [...found].map(w =>
+    `<div class="scrabble-word-chip">${w}</div>`
+  ).join('');
+
+  const empty = found.size === 0
+    ? `<span style="color:#c0a888;font-style:italic;font-size:.9rem">Noch keine Wörter gefunden…</span>`
+    : '';
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Wörter-Rätsel</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+
+    <p class="diff-instructions">Bilde mit den Buchstaben unten so viele Wörter wie möglich.<br>
+    Du brauchst <strong>${needed}</strong> verschiedene Wörter, um weiterzukommen. Jeder Buchstabe darf nur so oft verwendet werden, wie er vorkommt!</p>
+
+    <div class="scrabble-letters">${tiles}</div>
+
+    ${solved
+      ? `<div class="msg ok show" style="margin-bottom:16px">🎉 Fantastisch! Du hast ${needed} Wörter gefunden!</div>`
+      : `<div class="scrabble-input-row">
+           <input id="scrabble-input" class="answer-input" type="text"
+                  placeholder="Wort eingeben…" autocomplete="off" autocorrect="off"
+                  style="text-transform:uppercase;letter-spacing:3px;font-size:1.3rem;margin-bottom:0"
+                  onkeydown="if(event.key==='Enter')checkScrabbleWord(${idx})">
+           <button class="btn btn-gold btn-sm" onclick="checkScrabbleWord(${idx})">Prüfen ✓</button>
+         </div>
+         <div class="msg" id="scrabble-msg"></div>`
+    }
+
+    <p class="scrabble-progress">Gefunden: <strong>${found.size} / ${needed}</strong></p>
+    <div class="scrabble-found-list">${chips}${empty}</div>
+  </div>`;
+
+  if (!solved) document.getElementById('scrabble-input').focus();
+}
+
+function checkScrabbleWord(idx) {
+  const input = document.getElementById('scrabble-input');
+  const msg   = document.getElementById('scrabble-msg');
+  const stage = STAGES[idx];
+  const word  = input.value.trim().toUpperCase();
+  const found = state.scrabbleFound[idx];
+
+  if (!word) return;
+
+  // Already found
+  if (found.has(word)) {
+    showScrabbleMsg(msg, 'err', `"${word}" hast du schon gefunden!`);
+    shakeInput(input); return;
+  }
+
+  // Not a valid word
+  if (!stage.validWords.includes(word)) {
+    showScrabbleMsg(msg, 'err', `"${word}" ist kein gültiges Wort – versuch's nochmal!`);
+    shakeInput(input); return;
+  }
+
+  // Can't be formed from available letters
+  if (!canFormWord(word, stage.letters)) {
+    showScrabbleMsg(msg, 'err', `"${word}" kann mit diesen Buchstaben nicht gebildet werden!`);
+    shakeInput(input); return;
+  }
+
+  // ✓ Correct
+  found.add(word);
+  input.value = '';
+  msg.className = 'msg';
+
+  if (found.size >= stage.wordsNeeded) {
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+  }
+
+  // Re-render to update chips + progress
+  renderScrabble(stage, document.getElementById('stage-card'));
+}
+
+function showScrabbleMsg(el, type, text) {
+  el.className = `msg ${type} show`;
+  el.textContent = text;
+  setTimeout(() => { el.className = 'msg'; }, 2200);
+}
+
+function shakeInput(input) {
+  input.classList.remove('wrong');
+  void input.offsetWidth;
+  input.classList.add('wrong');
+  setTimeout(() => input.classList.remove('wrong'), 450);
+}
+
+/* ═══════════════════════════════════════
+   EGG COUNT
+   ═══════════════════════════════════════ */
+
+function renderEggCount(stage, card) {
+  const idx    = state.current;
+  const solved = state.solved.has(idx);
+
+  const inputs = stage.labels.map((label, i) => `
+    <div class="egg-count-field">
+      <span class="egg-count-label">${label}</span>
+      <input id="egg-input-${i}" class="egg-count-input ${solved ? 'ok' : ''}"
+             type="number" min="0" max="20" value="${solved ? stage.answers[i] : ''}"
+             placeholder="?" ${solved ? 'disabled' : ''}
+             onkeydown="if(event.key==='Enter')checkEggCount(${idx})">
+    </div>`
+  ).join('');
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Osterdetektiv</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+
+    <img src="${stage.image}" alt="Foto" class="egg-count-photo">
+
+    <div class="riddle-scroll">
+      <p class="riddle-text">${stage.story}</p>
+    </div>
+
+    ${solved
+      ? `<div class="msg ok show">🎉 Genau richtig! Du hast den rosa Hasen erwischt!</div>`
+      : `<p class="input-label" style="margin-top:18px">${stage.question}</p>
+         <div class="egg-count-inputs">${inputs}</div>
+         <button class="btn-hint" onclick="toggleHint()">💡 Brauchst du einen Hinweis?</button>
+         <div class="hint-box" id="hint-box">${stage.hint}</div>
+         <div class="msg" id="egg-msg"></div>
+         <button class="btn btn-gold btn-sm" onclick="checkEggCount(${idx})">Antwort prüfen ✓</button>`
+    }
+    ${solved ? `<div class="egg-count-inputs" style="margin-top:18px;pointer-events:none">${inputs}</div>` : ''}
+  </div>`;
+}
+
+function checkEggCount(idx) {
+  const stage  = STAGES[idx];
+  const msg    = document.getElementById('egg-msg');
+  const values = stage.answers.map((_, i) => {
+    const el = document.getElementById(`egg-input-${i}`);
+    return el ? parseInt(el.value, 10) : NaN;
+  });
+
+  const allCorrect = values.every((v, i) => v === stage.answers[i]);
+
+  if (allCorrect) {
+    stage.answers.forEach((_, i) => {
+      const el = document.getElementById(`egg-input-${i}`);
+      if (el) { el.classList.remove('wrong'); el.classList.add('ok'); el.disabled = true; }
+    });
+    msg.className = 'msg ok show';
+    msg.textContent = '🎉 Genau richtig! Du hast den rosa Hasen erwischt!';
+    state.solved.add(idx);
+    refreshNav();
+    refreshProgress();
+  } else {
+    stage.answers.forEach((correct, i) => {
+      const el = document.getElementById(`egg-input-${i}`);
+      if (!el) return;
+      const wrong = values[i] !== correct;
+      el.classList.remove('wrong');
+      void el.offsetWidth;
+      el.classList.toggle('wrong', wrong);
+      if (wrong) setTimeout(() => el.classList.remove('wrong'), 450);
+    });
+    msg.className = 'msg err show';
+    msg.textContent = '🐰 Nicht ganz — schau nochmal genau hin!';
+  }
+}
+
+/* ═══════════════════════════════════════
+   FIND DIFFERENCE
+   ═══════════════════════════════════════ */
+
+function renderFindDiff(stage, card) {
+  const idx = state.current;
+  if (!state.diffFound[idx]) state.diffFound[idx] = new Set();
+
+  // First visit or restart → begin with 'before' phase
+  if (state.diffPhase[idx] !== 'after') {
+    state.diffPhase[idx] = 'before';
+    renderDiffBefore(stage, card, idx);
+  } else {
+    renderDiffAfter(stage, card, idx);
+  }
+}
+
+/* ── Phase 1: show original for 10 seconds ── */
+function renderDiffBefore(stage, card, idx) {
+  let timeLeft = 10;
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p class="diff-instructions">Schau dir das Originalbild genau an – du hast <strong>10 Sekunden</strong>!</p>
+    <div class="diff-wrap">
+      <img src="${stage.imageBefore}" alt="Original">
+      <div class="diff-badge">Original – merke es dir!</div>
+    </div>
+    <div class="diff-countdown-bar">
+      <div class="diff-countdown-fill" id="diff-count-fill"></div>
+    </div>
+    <p class="diff-countdown-label"><strong id="diff-count-num">10</strong> Sekunden</p>
+  </div>`;
+
+  // Kick off the shrinking bar (tiny delay so transition applies)
+  setTimeout(() => {
+    const fill = document.getElementById('diff-count-fill');
+    if (fill) { fill.style.transition = 'width 10s linear'; fill.style.width = '0%'; }
+  }, 40);
+
+  // Tick the number each second
+  _diffCountdown = setInterval(() => {
+    timeLeft--;
+    const el = document.getElementById('diff-count-num');
+    if (el) el.textContent = timeLeft;
+    if (timeLeft <= 0) { clearInterval(_diffCountdown); _diffCountdown = null; }
+  }, 1000);
+
+  // After 10 s → bunny flash
+  _diffTimeouts.push(setTimeout(() => {
+    clearInterval(_diffCountdown); _diffCountdown = null;
+    renderDiffBunny(stage, card, idx);
+  }, 10000));
+}
+
+/* ── Phase 2: flash Easter Bunny for 1 second ── */
+function renderDiffBunny(stage, card, idx) {
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p class="diff-instructions">&nbsp;</p>
+    <div class="diff-wrap">
+      <img src="EasterBunny.png" alt="Osterhase">
+      <div class="diff-badge">🐰 Hoppla!</div>
+    </div>
+  </div>`;
+
+  _diffTimeouts.push(setTimeout(() => {
+    state.diffPhase[idx] = 'after';
+    renderDiffAfter(stage, card, idx);
+  }, 1000));
+}
+
+/* ── Phase 3: spot-the-difference on the 'after' image ── */
+function renderDiffAfter(stage, card, idx) {
+  const found  = state.diffFound[idx];
+  const solved = state.solved.has(idx);
+
+  const dots = Array.from({ length: stage.totalDifferences }, (_, i) =>
+    `<div class="diff-dot ${found.has(i) ? 'found' : ''}"></div>`
+  ).join('');
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p class="diff-instructions">${stage.instructions}</p>
+
+    <div class="diff-replay-row">
+      <span class="diff-score-label">Gefunden:</span>
+      ${dots}
+      ${!solved ? `<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="replayDiffSequence(${idx})">👀 Original nochmal anschauen</button>` : ''}
+    </div>
+
+    ${solved ? `<div class="msg ok show" style="margin-bottom:16px">🎉 Du hast alle Unterschiede gefunden! Super gemacht!</div>` : ''}
+
+    <div class="diff-wrap ${solved ? '' : 'clickable'}" id="diff-after">
+      <img src="${stage.imageAfter}" alt="Finde die Änderungen">
+      <div class="diff-badge">Finde die Änderungen!</div>
+    </div>
+  </div>`;
+
+  const afterWrap = document.getElementById('diff-after');
+
+  // Re-draw already-found markers
+  found.forEach(i => {
+    const d = stage.differences[i];
+    placeMarker(afterWrap, d.x * 100, d.y * 100, true);
+  });
+
+  if (!solved) {
+    afterWrap.addEventListener('click', e => onDiffClick(e, afterWrap, stage, idx));
+  }
+}
+
+/* ── Replay: restart the before→bunny→after sequence ── */
+function replayDiffSequence(idx) {
+  clearDiffTimers();
+  state.diffPhase[idx] = 'before';
+  const stage = STAGES[idx];
+  const card  = document.getElementById('stage-card');
+  renderDiffBefore(stage, card, idx);
+}
+
+function onDiffClick(e, wrap, stage, idx) {
+  const rect  = wrap.getBoundingClientRect();
+  const xPct  = (e.clientX - rect.left) / rect.width;
+  const yPct  = (e.clientY - rect.top)  / rect.height;
+  const found = state.diffFound[idx];
+
+  for (let i = 0; i < stage.differences.length; i++) {
+    if (found.has(i)) continue;
+    const d    = stage.differences[i];
+    const dist = Math.hypot(xPct - d.x, yPct - d.y);
+    if (dist <= d.r) {
+      found.add(i);
+      placeMarker(wrap, xPct * 100, yPct * 100, true);
+      syncDots(found, stage.totalDifferences);
+
+      if (found.size === stage.totalDifferences) {
+        state.solved.add(idx);
+        refreshNav();
+        refreshProgress();
+        const ok = document.createElement('div');
+        ok.className = 'msg ok show';
+        ok.style.marginTop = '14px';
+        ok.textContent = '🎉 Du hast alle Unterschiede gefunden! Super gemacht!';
+        document.getElementById('stage-card').appendChild(ok);
+      }
+      return;
+    }
+  }
+
+  // No match → transient red marker
+  placeMarker(wrap, xPct * 100, yPct * 100, false);
+}
+
+function placeMarker(wrap, xPct, yPct, isFound) {
+  const m = document.createElement('div');
+  m.className = `marker ${isFound ? 'found' : 'wrong'}`;
+  m.style.left = xPct + '%';
+  m.style.top  = yPct + '%';
+  wrap.appendChild(m);
+  if (!isFound) setTimeout(() => m.remove(), 1300);
+}
+
+function syncDots(found, total) {
+  document.querySelectorAll('.diff-dot').forEach((dot, i) => {
+    dot.classList.toggle('found', found.has(i));
+  });
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════ */
+
+function goBack() {
+  if (state.current > 0) { state.current--; render(); }
+}
+
+function goNext() {
+  if (!state.solved.has(state.current)) return;
+  if (state.current === STAGES.length - 1) { showPrize(); return; }
+  state.current++;
+  render();
+}
+
+/* ═══════════════════════════════════════
+   PRIZE SCREEN
+   ═══════════════════════════════════════ */
+
+function showPrize() {
+  // All eggs filled
+  const allSolved = { solved: new Set(STAGES.map((_, i) => i)), current: -1 };
+  document.getElementById('prize-eggs').innerHTML =
+    STAGES.map((_, i) => eggSVG(i, allSolved)).join('');
+
+  showScreen('screen-prize');
+  spawnConfetti();
+}
+
+const CONFETTI_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
+
+function spawnConfetti() {
+  const screen = document.getElementById('screen-prize');
+  for (let i = 0; i < 70; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const size = 7 + Math.random() * 8;
+      el.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: ${Math.random() > .45 ? '50%' : '2px'};
+        background: ${CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]};
+        animation-duration: ${2.4 + Math.random() * 2.8}s;
+        animation-delay: 0s;
+      `;
+      screen.appendChild(el);
+      setTimeout(() => el.remove(), 6500);
+    }, i * 75);
+  }
+}
+
+/* ═══════════════════════════════════════
+   DEBUG / TESTING SHORTCUTS
+   ═══════════════════════════════════════
+   [D]            → toggle difference zone overlay
+   [Ctrl+Shift+Z] → skip (solve) current stage
+   ═══════════════════════════════════════ */
+
+document.addEventListener('keydown', e => {
+
+  // Toggle debug zones on find-difference (only in 'after' phase)
+  if ((e.key === 'd' || e.key === 'D') && !e.ctrlKey && !e.metaKey) {
+    const stage = STAGES[state.current];
+    if (stage?.type !== 'FIND_DIFFERENCE') return;
+    if (state.diffPhase[state.current] !== 'after') return;
+    const wrap = document.getElementById('diff-after');
+    if (!wrap) return;
+
+    const existing = wrap.querySelectorAll('.dbg-zone');
+    if (existing.length) { existing.forEach(z => z.remove()); return; }
+
+    stage.differences.forEach((d, i) => {
+      const z = document.createElement('div');
+      z.className = 'dbg-zone';
+      // Convert radius fraction to percentage of rendered width
+      // width of zone = 2r * 100%, but we show it as a square with aspect-ratio:1
+      const pctR = d.r * 2 * 100;
+      z.style.cssText = `
+        left:${d.x*100}%; top:${d.y*100}%;
+        width:${pctR}%; aspect-ratio:1;
+      `;
+      z.textContent = i + 1;
+      wrap.appendChild(z);
+    });
+  }
+
+  // Ctrl+Shift+Z → solve current stage (cheat for testing)
+  if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
+    const idx   = state.current;
+    const stage = STAGES[idx];
+    if (stage.type === 'FIND_DIFFERENCE') {
+      clearDiffTimers();
+      if (!state.diffFound[idx]) state.diffFound[idx] = new Set();
+      stage.differences.forEach((_, i) => state.diffFound[idx].add(i));
+      state.diffPhase[idx] = 'after';
+    }
+    // EGG_COUNT / LISTEN: nothing extra needed — render reads solved state
+    if (stage.type === 'SCRABBLE') {
+      if (!state.scrabbleFound[idx]) state.scrabbleFound[idx] = new Set();
+      stage.validWords.slice(0, stage.wordsNeeded).forEach(w => state.scrabbleFound[idx].add(w));
+    }
+    if (stage.type === 'QR_SCAN') {
+      if (!state.qrScanned[idx]) state.qrScanned[idx] = new Set();
+      stage.codes.forEach(c => state.qrScanned[idx].add(c));
+    }
+    if (stage.type === 'ORIGAMI') {
+      state.origamiStep[idx]  = 1; // jump straight to photo phase
+      state.origamiPhoto[idx] = state.origamiPhoto[idx] || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    }
+    state.solved.add(idx);
+    render();
+  }
+});
+</script>
+</body>
+</html>
