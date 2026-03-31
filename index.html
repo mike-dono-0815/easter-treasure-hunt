@@ -68,8 +68,8 @@
        INTRO SCREEN
     ════════════════════════════ */
     #screen-intro {
-      justify-content: center;
-      padding: 36px 20px;
+      justify-content: flex-start;
+      padding: 12px 20px 36px;
       gap: 0;
     }
     .intro-card {
@@ -531,22 +531,23 @@
     .scrabble-letters {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 6px;
       justify-content: center;
-      margin-bottom: 24px;
+      margin-top: 0;
+      margin-bottom: 16px;
     }
     .scrabble-tile {
-      width: 54px; height: 60px;
+      width: 44px; height: 50px;
       background: linear-gradient(160deg, #fdf0c8, #f0d878);
       border: 2px solid #c8a030;
-      border-bottom: 5px solid #a87820;
-      border-radius: 8px;
+      border-bottom: 4px solid #a87820;
+      border-radius: 7px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: 'Fredoka One', cursive;
-      font-size: 1.8rem;
+      font-size: 1.45rem;
       color: var(--brown);
       box-shadow: 0 3px 8px rgba(80,40,10,.18);
       user-select: none;
@@ -852,6 +853,14 @@
       user-select: none;
       -webkit-user-drag: none;
     }
+    .diff-replay-overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      pointer-events: auto;
+      white-space: nowrap;
+    }
     .diff-badge {
       position: absolute;
       top: 10px; left: 10px;
@@ -994,6 +1003,47 @@
       margin-bottom: 34px;
     }
 
+    .prize-nest-riddle {
+      background: linear-gradient(135deg, #fffbe8, #fff3cc);
+      border: 2px dashed var(--gold);
+      border-radius: 14px;
+      padding: 22px 24px 18px;
+      margin: 28px 0 32px;
+      text-align: center;
+    }
+    .prize-nest-riddle-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.15rem;
+      color: var(--brown);
+      margin-bottom: 12px;
+    }
+    .prize-nest-riddle-poem {
+      font-size: .97rem;
+      color: var(--text-s);
+      line-height: 1.85;
+      white-space: pre-line;
+      font-style: italic;
+    }
+    .prize-nest-reveal {
+      margin-top: 16px;
+      background: none;
+      border: 1.5px solid var(--gold);
+      border-radius: var(--r-pill);
+      padding: 7px 20px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--brown);
+      cursor: pointer;
+    }
+    .prize-nest-reveal-text {
+      display: none;
+      margin-top: 12px;
+      font-size: .95rem;
+      font-weight: 800;
+      color: var(--brown);
+    }
+
     /* ── Confetti ── */
     .confetti-piece {
       position: fixed;
@@ -1018,6 +1068,13 @@
       gap: 16px;
       width: 100%;
     }
+    .sudoku-board-wrap {
+      position: relative;
+      display: inline-block;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px var(--shadow);
+      overflow: hidden;
+    }
     .sudoku-board {
       --sdq: min(calc((100vw - 80px) / 6), 54px);
       display: grid;
@@ -1026,7 +1083,7 @@
       border: 3px solid var(--brown);
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 4px 20px var(--shadow);
+      box-shadow: none;
     }
     .sudoku-cell {
       width: var(--sdq); height: var(--sdq);
@@ -1123,6 +1180,13 @@
       color: var(--text-s);
       max-width: 340px;
     }
+    .chess-board-wrap {
+      position: relative;
+      display: inline-block;
+      border-radius: 6px;
+      box-shadow: 0 6px 24px var(--shadow);
+      overflow: hidden;
+    }
     .chess-board {
       --sq: min(calc((100vw - 80px) / 8), 42px);
       display: grid;
@@ -1131,8 +1195,33 @@
       border: 3px solid var(--brown);
       border-radius: 6px;
       overflow: hidden;
-      box-shadow: 0 6px 24px var(--shadow);
+      box-shadow: none;
       user-select: none;
+    }
+    .chess-mate-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.52);
+      border-radius: 6px;
+      animation: chessMateIn .4s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes chessMateIn {
+      from { opacity: 0; transform: scale(.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .chess-mate-label {
+      background: linear-gradient(135deg, #f5e060, #e8a820);
+      color: var(--brown);
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.6rem, 7vw, 2.4rem);
+      padding: .35em .8em;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+      text-align: center;
+      line-height: 1.2;
     }
     .chess-sq {
       width: var(--sq); height: var(--sq);
@@ -1259,7 +1348,7 @@
           <p class="intro-tagline">
             Löse jedes Rätsel, folge den Hinweisen und entdecke den Osterschatz! 🌸
           </p>
-          <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🐣 Das Abenteuer beginnt!</button>
+          <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🎵 Klicken &amp; Lauschen</button>
         </div>
       </div>
     </div>
@@ -1291,12 +1380,27 @@
     <div class="prize-card">
       <div class="prize-eggs" id="prize-eggs"></div>
       <div class="prize-trophy">🏆</div>
-      <h1 class="prize-title">Du hast es gefunden! 🌸</h1>
+      <h1 class="prize-title">Du hast es geschafft! 🌸</h1>
       <p class="prize-msg">
         Fantastisch — du hast jedes Rätsel gelöst und bist<br>
-        dem Osterhasen bis ans Ende gefolgt!<br><br>
-        🎉 Frohe Ostern! 🐰
+        dem Osterhasen bis ans Ende gefolgt!
       </p>
+
+      <div class="prize-nest-riddle">
+        <p class="prize-nest-riddle-title">🐰 Aber wo ist Yevas Osternest?</p>
+        <p class="prize-nest-riddle-poem">Der Osterhase kratzt sich am Ohr…
+„Jetzt fällt es mir wieder ein!
+Ich schlucke Teig und spucke Brot,
+ich werde heiß – doch heute kalt.
+In der Küche bin ich groß zu Haus,
+ein Häschen legte etwas aus:
+Mach meine Tür ganz leise auf –
+da wartet dein Osternest drauf!"</p>
+        <button class="prize-nest-reveal" onclick="document.getElementById('nest-reveal').style.display='block';this.style.display='none';">💡 Wo ist es?</button>
+        <p class="prize-nest-reveal-text" id="nest-reveal">🔥 Im Backrohr in der Küche! 🥚🌸</p>
+      </div>
+
+      <p class="prize-msg" style="margin-bottom:34px">🎉 Frohe Ostern, Yeva! 🐰</p>
       <button class="btn btn-gold btn-lg" onclick="resetToIntro()">Nochmal spielen 🔄</button>
     </div>
   </div>
@@ -1549,10 +1653,10 @@ function onIntroStart() {
     if (fill) { fill.style.transition = 'width 30s linear'; fill.style.width = '100%'; }
   }, 40);
 
-  // Unlock button after 30 s
+  // Unlock button after 30 s and update label
   setTimeout(() => {
     const btn = document.getElementById('btn-enter-game');
-    if (btn) btn.disabled = false;
+    if (btn) { btn.disabled = false; btn.textContent = '🐣 Starte dein Abenteuer!'; }
   }, 30000);
 }
 
@@ -1564,7 +1668,7 @@ function resetToIntro() {
   const footer = document.querySelector('.intro-footer');
   footer.innerHTML = `
     <p class="intro-tagline">Löse jedes Rätsel, folge den Hinweisen und entdecke den Osterschatz! 🌸</p>
-    <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🐣 Das Abenteuer beginnt!</button>`;
+    <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🎵 Klicken &amp; Lauschen</button>`;
 
   showScreen('screen-intro');
 }
@@ -1937,7 +2041,34 @@ async function qrHandlePhoto(e, idx) {
     try {
       const detector = new BarcodeDetector({ formats: ['qr_code'] });
       const bitmap   = await createImageBitmap(file);
-      const codes    = await detector.detect(bitmap);
+
+      // Attempt 1: raw image
+      let codes = await detector.detect(bitmap);
+
+      // Attempt 2: high-contrast grayscale (helps with blurry photos)
+      if (codes.length === 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width  = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'grayscale(1) contrast(2) brightness(1.1)';
+        ctx.drawImage(bitmap, 0, 0);
+        const bitmap2 = await createImageBitmap(canvas);
+        codes = await detector.detect(bitmap2);
+      }
+
+      // Attempt 3: inverted high-contrast (for dark-background QR codes)
+      if (codes.length === 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width  = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.filter = 'grayscale(1) contrast(2) invert(1)';
+        ctx.drawImage(bitmap, 0, 0);
+        const bitmap3 = await createImageBitmap(canvas);
+        codes = await detector.detect(bitmap3);
+      }
+
       if (codes.length === 0) {
         showQrMsg(msg, 'err', '🔍 Kein QR-Code erkannt – halte die Kamera näher ran!');
         return;
@@ -2279,7 +2410,6 @@ function renderDiffAfter(stage, card, idx) {
     <div class="diff-replay-row">
       <span class="diff-score-label">Gefunden:</span>
       ${dots}
-      ${!solved ? `<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="replayDiffSequence(${idx})">👀 Original nochmal anschauen</button>` : ''}
     </div>
 
     ${solved ? `<div class="msg ok show" style="margin-bottom:16px">🎉 Du hast alle Unterschiede gefunden! Super gemacht!</div>` : ''}
@@ -2287,6 +2417,7 @@ function renderDiffAfter(stage, card, idx) {
     <div class="diff-wrap ${solved ? '' : 'clickable'}" id="diff-after">
       <img src="${stage.imageAfter}" alt="Finde die Änderungen">
       <div class="diff-badge">Finde die Änderungen!</div>
+      ${!solved ? `<button class="btn btn-ghost btn-sm diff-replay-overlay" onclick="replayDiffSequence(${idx})">👀 Original nochmal anschauen</button>` : ''}
     </div>
   </div>`;
 
@@ -2493,7 +2624,8 @@ function snakeTick(idx) {
 
     if (_sg.score >= _sg.goal) { snakeWin(idx); return; }
     _sg.food = snakeSpawnFood();
-    // Grow by 2: keep the tail (don't pop) and add one more copy of the last segment
+    // Grow by 3: keep the tail (don't pop) and add two more copies of the last segment
+    _sg.body.push({..._sg.body[_sg.body.length - 1]});
     _sg.body.push({..._sg.body[_sg.body.length - 1]});
   } else {
     _sg.body.pop();
@@ -2507,6 +2639,11 @@ function snakeGameOver(idx) {
   _sg.timer = null;
   const {ctx, canvas} = _sg;
   const score = _sg.score;
+
+  // Reset counter display immediately
+  _sg.score = 0;
+  const sc = document.getElementById('snake-score');
+  if (sc) sc.textContent = `🥚 0 / ${STAGES[idx].goal}`;
 
   // Red flash
   ctx.fillStyle = 'rgba(210,60,60,.4)';
@@ -2698,7 +2835,7 @@ function renderSudoku(stage, card) {
     </p>
 
     <div class="sudoku-wrap">
-      <div class="sudoku-board">${cells}</div>
+      <div class="sudoku-board-wrap" id="sudoku-board-wrap"><div class="sudoku-board">${cells}</div></div>
 
       <div class="sudoku-palette">
         ${palette}
@@ -2799,7 +2936,15 @@ function sudokuCheck(idx) {
 
   if (wrong.size === 0) {
     state.solved.add(idx);
-    render();
+    // Show overlay on the board before transitioning
+    const wrap = document.getElementById('sudoku-board-wrap');
+    if (wrap) {
+      const ov = document.createElement('div');
+      ov.className = 'chess-mate-overlay';
+      ov.innerHTML = '<div class="chess-mate-label">🧩 Gelöst! 🎉</div>';
+      wrap.appendChild(ov);
+    }
+    setTimeout(() => render(), 2200);
   } else {
     renderSudoku(stage, document.getElementById('stage-card'));
     const err = document.getElementById('sudoku-err');
@@ -2830,7 +2975,7 @@ function renderChess(stage, card) {
     <p class="chess-desc">${stage.description}</p>
 
     <div class="chess-outer">
-      <div class="chess-board" id="chess-board"></div>
+      <div class="chess-board-wrap" id="chess-board-wrap"><div class="chess-board" id="chess-board"></div></div>
       <p class="chess-coords" id="chess-coords">&nbsp;</p>
       <p class="chess-err" id="chess-err"></p>
       <button class="chess-hint-btn" onclick="document.getElementById('chess-hint').style.display='block';this.style.display='none';">💡 Hinweis anzeigen</button>
@@ -2894,9 +3039,23 @@ function chessClick(idx, row, col) {
     const sol = stage.solution;
     if (_chess.selected.row === sol.fromRow && _chess.selected.col === sol.fromCol
         && row === sol.toRow && col === sol.toCol) {
-      // Correct!
+      // Correct! Apply the move visually before showing overlay
+      _chess.pieces = _chess.pieces.filter(p => !(p.row === row && p.col === col && p.color !== _chess.selected.color));
+      _chess.selected.row = row;
+      _chess.selected.col = col;
+      _chess.selected = null;
+      _chess.targets  = [];
+      chessRenderBoard(idx);
+      // Show checkmate overlay on top of the board
+      const wrap = document.getElementById('chess-board-wrap');
+      if (wrap) {
+        const ov = document.createElement('div');
+        ov.className = 'chess-mate-overlay';
+        ov.innerHTML = '<div class="chess-mate-label">♟ Schachmatt! 🎉</div>';
+        wrap.appendChild(ov);
+      }
       state.solved.add(idx);
-      render();
+      setTimeout(() => render(), 2200);
     } else {
       if (errEl) errEl.textContent = 'Das ist leider nicht Schachmatt. Versuche es nochmal!';
       _chess.selected = null;
