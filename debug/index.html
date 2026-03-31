@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Scanner Debug</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 20px;
+    }
+    h1 { font-size: 1.3rem; color: #333; }
+    label.scan-btn {
+      display: inline-block;
+      background: #e8a820;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 999px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity .15s;
+    }
+    label.scan-btn.busy { opacity: 0.5; pointer-events: none; }
+    label.scan-btn input { display: none; }
+    #preview {
+      max-width: 100%;
+      width: 320px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      display: none;
+    }
+    #result {
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 16px 24px;
+      border-radius: 12px;
+      max-width: 340px;
+      width: 100%;
+      display: none;
+    }
+    #result.ok  { background: #d4edda; color: #1a6b2a; }
+    #result.err { background: #fde8e8; color: #a02020; }
+    #details {
+      font-size: .8rem;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 QR Scanner Debug</h1>
+
+  <label class="scan-btn" id="scan-btn">
+    📷 Foto aufnehmen
+    <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+  </label>
+
+  <img id="preview" alt="Captured photo">
+  <div id="result"></div>
+  <div id="details"></div>
+
+  <script>
+    async function handlePhoto(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      e.target.value = '';
+
+      const btn     = document.getElementById('scan-btn');
+      const preview = document.getElementById('preview');
+      const result  = document.getElementById('result');
+      const details = document.getElementById('details');
+
+      btn.classList.add('busy');
+      result.style.display = 'none';
+      details.textContent = 'Scanning…';
+
+      // Show preview
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      preview.style.display = 'block';
+
+      try {
+        const bitmap = await createImageBitmap(file);
+
+        // Scale to 800px max
+        const MAX = 800;
+        const ratio = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+        const w = Math.round(bitmap.width  * ratio);
+        const h = Math.round(bitmap.height * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        const idata = ctx.getImageData(0, 0, w, h);
+
+        const qr = jsQR(idata.data, idata.width, idata.height, { inversionAttempts: 'attemptBoth' });
+
+        result.style.display = 'block';
+        if (qr) {
+          result.className = 'ok';
+          result.textContent = '✅ ' + qr.data;
+          details.textContent = `Image: ${bitmap.width}×${bitmap.height}px → scanned at ${w}×${h}px`;
+        } else {
+          result.className = 'err';
+          result.textContent = '❌ No barcode recognized';
+          details.textContent = `Image: ${bitmap.width}×${bitmap.height}px → scanned at ${w}×${h}px`;
+        }
+      } catch (err) {
+        result.style.display = 'block';
+        result.className = 'err';
+        result.textContent = '⚠️ Error: ' + err.message;
+        details.textContent = '';
+      } finally {
+        btn.classList.remove('busy');
+      }
+    }
+  </script>
+</body>
+</html>
