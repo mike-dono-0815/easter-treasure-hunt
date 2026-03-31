@@ -1283,7 +1283,7 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     title:   'Hör ganz genau hin!',
     audio:   'Hoppe_durch_den_Garten.mp4',
     audioFallback: 'Hoppe_durch_den_Garten.mp3',
-    story:   'Im Lied versteckt sich ein Geheimnis… Hör ganz genau hin und finde heraus, wer durch den Garten hopst!',
+    story:   'Im Lied versteckt sich ein Geheimnis… Hör ganz genau hin und finde die Lösung heraus!',
     hint:    'Wer bringt den Kindern bunte Eier? 🥚',
     answers: ['osterhase', 'der osterhase', 'ein osterhase'],
   },
@@ -2635,10 +2635,7 @@ function renderSudoku(stage, card) {
       ${allFilled && !solved
         ? `<button class="btn btn-gold btn-md" onclick="sudokuCheck(${idx})">✅ Lösung prüfen</button>`
         : ''}
-      ${solved
-        ? `<div class="success-banner">🧩 Perfekt gelöst! Wunderbar! 🎉</div>
-           <button class="btn-next" onclick="advanceStage()">Weiter →</button>`
-        : ''}
+      ${solved ? `<div class="success-banner">🧩 Perfekt gelöst! Wunderbar! 🎉</div>` : ''}
     </div>
   </div>`;
 }
@@ -2710,8 +2707,7 @@ function renderChess(stage, card) {
       <p id="chess-hint" style="display:none;font-size:.85rem;color:var(--text-s);text-align:center;max-width:300px;">${stage.hint}</p>
     </div>
 
-    ${solved ? `<div class="success-banner">♟ Schachmatt! Wunderbar! 🎉</div>
-      <button class="btn-next" onclick="advanceStage()">Weiter →</button>` : ''}
+    ${solved ? `<div class="success-banner">♟ Schachmatt! Wunderbar! 🎉</div>` : ''}
   </div>`;
 
   chessRenderBoard(idx);
