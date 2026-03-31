@@ -92,6 +92,37 @@
       font-style: italic;
       margin-bottom: 22px;
       line-height: 1.6;
+
+    /* ── Music wait state ── */
+    .intro-music-wait {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .music-note-anim {
+      font-size: 2.8rem;
+      animation: noteFloat .75s ease-in-out infinite alternate;
+      display: inline-block;
+    }
+    @keyframes noteFloat {
+      from { transform: translateY(0) rotate(-10deg) scale(1);   }
+      to   { transform: translateY(-10px) rotate(10deg) scale(1.15); }
+    }
+    .music-progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e0d0c0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .music-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-lt), var(--gold));
+      border-radius: 6px;
+      width: 0%;
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
     }
 
     /* ════════════════════════════
@@ -1148,7 +1179,7 @@
           <p class="intro-tagline">
             Löse jedes Rätsel, folge den Hinweisen und entdecke den Osterschatz! 🌸
           </p>
-          <button class="btn btn-gold btn-lg" onclick="startGame()">🐣 Das Abenteuer beginnt!</button>
+          <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🐣 Das Abenteuer beginnt!</button>
         </div>
       </div>
     </div>
@@ -1186,7 +1217,7 @@
         dem Osterhasen bis ans Ende gefolgt!<br><br>
         🎉 Frohe Ostern! 🐰
       </p>
-      <button class="btn btn-gold btn-lg" onclick="startGame()">Nochmal spielen 🔄</button>
+      <button class="btn btn-gold btn-lg" onclick="resetToIntro()">Nochmal spielen 🔄</button>
     </div>
   </div>
 
@@ -1413,6 +1444,49 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
+}
+
+// Called when the player first clicks "Das Abenteuer beginnt!"
+// Plays the music and shows a 30-second wait before entering the game.
+function onIntroStart() {
+  const music = document.getElementById('intro-music');
+  if (music) { music.currentTime = 0; music.play().catch(() => {}); }
+
+  const footer = document.querySelector('.intro-footer');
+  footer.innerHTML = `
+    <div class="intro-music-wait">
+      <div class="music-note-anim">🎵</div>
+      <p class="intro-tagline">Das Osterlied spielt… hör gut zu!</p>
+      <div class="music-progress-bar"><div class="music-progress-fill" id="music-fill"></div></div>
+      <button class="btn btn-gold btn-lg" id="btn-enter-game" onclick="startGame()" disabled>
+        🐣 Das Abenteuer beginnt!
+      </button>
+    </div>`;
+
+  // Animate progress bar over 30 s
+  setTimeout(() => {
+    const fill = document.getElementById('music-fill');
+    if (fill) { fill.style.transition = 'width 30s linear'; fill.style.width = '100%'; }
+  }, 40);
+
+  // Unlock button after 30 s
+  setTimeout(() => {
+    const btn = document.getElementById('btn-enter-game');
+    if (btn) btn.disabled = false;
+  }, 30000);
+}
+
+// Resets everything and returns to the intro screen (e.g. "Nochmal spielen")
+function resetToIntro() {
+  const music = document.getElementById('intro-music');
+  if (music) { music.pause(); music.currentTime = 0; }
+
+  const footer = document.querySelector('.intro-footer');
+  footer.innerHTML = `
+    <p class="intro-tagline">Löse jedes Rätsel, folge den Hinweisen und entdecke den Osterschatz! 🌸</p>
+    <button class="btn btn-gold btn-lg" onclick="onIntroStart()">🐣 Das Abenteuer beginnt!</button>`;
+
+  showScreen('screen-intro');
 }
 
 function startGame() {
@@ -2102,7 +2176,9 @@ function renderDiffBefore(stage, card, idx) {
   _diffTimeouts.push(setTimeout(() => {
     clearInterval(_diffCountdown); _diffCountdown = null;
     state.diffPhase[idx] = 'after';
+    const savedScroll = window.scrollY;
     renderDiffAfter(stage, card, idx);
+    requestAnimationFrame(() => window.scrollTo(0, savedScroll));
   }, 10000));
 }
 
@@ -2796,6 +2872,8 @@ function showPrize() {
 
   showScreen('screen-prize');
   spawnConfetti();
+  const music = document.getElementById('intro-music');
+  if (music) { music.currentTime = 0; music.play().catch(() => {}); }
 }
 
 const CONFETTI_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
@@ -2900,21 +2978,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Start intro music on first user interaction (browsers require a gesture)
-(function() {
-  const music = document.getElementById('intro-music');
-  if (!music) return;
-  function tryPlay() {
-    const intro = document.getElementById('screen-intro');
-    if (intro && intro.classList.contains('active')) {
-      music.play().catch(() => {});
-    }
-    document.removeEventListener('pointerdown', tryPlay);
-    document.removeEventListener('keydown', tryPlay);
-  }
-  document.addEventListener('pointerdown', tryPlay);
-  document.addEventListener('keydown', tryPlay);
-})();
 </script>
 </body>
 </html>
