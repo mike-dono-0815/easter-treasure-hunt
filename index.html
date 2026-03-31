@@ -6,6 +6,7 @@
   <title>Die Suche nach dem Osternest 🐣</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -855,8 +856,8 @@
     }
     .diff-replay-overlay {
       position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      top: 10px; left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
       pointer-events: auto;
       white-space: nowrap;
@@ -1511,17 +1512,23 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     type:  'CHESS',
     icon:  '♟',
     title: 'Schach-Rätsel!',
-    description: 'Weiß ist am Zug – kannst du in einem einzigen Zug Schachmatt geben?',
-    hint:  'Der Springer auf h6 kann eine tödliche L-förmige Bewegung machen… 🐴',
+    description: 'Weiß ist am Zug – kannst du in zwei Zügen Schachmatt geben?',
+    hint:  'Die Dame kann sich opfern… und dann macht der Springer auf f7 Schachmatt! 🐴',
     pieces: [
-      { row:2, col:7, type:'N', color:'w' }, // Nh6
-      { row:4, col:4, type:'K', color:'w' }, // Ke4
+      { row:7, col:6, type:'K', color:'w' }, // Kg1
+      { row:2, col:4, type:'Q', color:'w' }, // Qe6
+      { row:3, col:6, type:'N', color:'w' }, // Ng5
+      { row:3, col:3, type:'B', color:'w' }, // Bd5
       { row:0, col:7, type:'K', color:'b' }, // Kh8
-      { row:1, col:7, type:'R', color:'b' }, // Rh7
-      { row:0, col:6, type:'R', color:'b' }, // Rg8
+      { row:0, col:5, type:'R', color:'b' }, // Rf8
       { row:1, col:6, type:'P', color:'b' }, // Pg7
+      { row:1, col:7, type:'P', color:'b' }, // Ph7
     ],
-    solution: { fromRow:2, fromCol:7, toRow:1, toCol:5 }, // Nh6→f7#
+    solution: {
+      move1:      { fromRow:2, fromCol:4, toRow:0, toCol:6 }, // Qg8+
+      blackReply: { fromRow:0, fromCol:5, toRow:0, toCol:6 }, // Rxg8
+      move2:      { fromRow:3, fromCol:6, toRow:1, toCol:5 }, // Nf7#
+    },
   },
   {
     type:    'SUDOKU',
@@ -2030,57 +2037,52 @@ function renderQrScan(stage, card) {
 async function qrHandlePhoto(e, idx) {
   const file = e.target.files[0];
   if (!file) return;
-
-  // Reset input so same code can be re-tried if needed
   e.target.value = '';
 
   const msg = document.getElementById('qr-msg');
+  showQrMsg(msg, 'err', '🔍 Wird gescannt…');
 
-  // Try BarcodeDetector (Chrome/Edge/Safari 17+)
-  if ('BarcodeDetector' in window) {
-    try {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      const bitmap   = await createImageBitmap(file);
+  try {
+    const bitmap = await createImageBitmap(file);
 
-      // Attempt 1: raw image
-      let codes = await detector.detect(bitmap);
-
-      // Attempt 2: high-contrast grayscale (helps with blurry photos)
-      if (codes.length === 0) {
-        const canvas = document.createElement('canvas');
-        canvas.width  = bitmap.width;
-        canvas.height = bitmap.height;
-        const ctx = canvas.getContext('2d');
-        ctx.filter = 'grayscale(1) contrast(2) brightness(1.1)';
-        ctx.drawImage(bitmap, 0, 0);
-        const bitmap2 = await createImageBitmap(canvas);
-        codes = await detector.detect(bitmap2);
-      }
-
-      // Attempt 3: inverted high-contrast (for dark-background QR codes)
-      if (codes.length === 0) {
-        const canvas = document.createElement('canvas');
-        canvas.width  = bitmap.width;
-        canvas.height = bitmap.height;
-        const ctx = canvas.getContext('2d');
-        ctx.filter = 'grayscale(1) contrast(2) invert(1)';
-        ctx.drawImage(bitmap, 0, 0);
-        const bitmap3 = await createImageBitmap(canvas);
-        codes = await detector.detect(bitmap3);
-      }
-
-      if (codes.length === 0) {
-        showQrMsg(msg, 'err', '🔍 Kein QR-Code erkannt – halte die Kamera näher ran!');
-        return;
-      }
-      qrValidate(codes[0].rawValue.trim().toUpperCase(), idx);
-    } catch {
-      showQrMsg(msg, 'err', '⚠️ Scan fehlgeschlagen – bitte manuell eingeben.');
+    // Helper: draw bitmap to canvas with optional CSS filter, return ImageData
+    function getImageData(bmp, filter, scale) {
+      const w = Math.round(bmp.width  * scale);
+      const h = Math.round(bmp.height * scale);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      if (filter) ctx.filter = filter;
+      ctx.drawImage(bmp, 0, 0, w, h);
+      return ctx.getImageData(0, 0, w, h);
     }
-  } else {
-    // BarcodeDetector not available → prompt manual entry
-    showQrMsg(msg, 'err', '📝 Automatischer Scan nicht verfügbar – bitte Code manuell eingeben.');
-    // no auto-focus — user will tap manually
+
+    // Multi-pass attempts: different filters × scales
+    const passes = [
+      { filter: null,                                   scale: 1    },
+      { filter: 'grayscale(1) contrast(1.8)',           scale: 1    },
+      { filter: 'grayscale(1) contrast(2.5) brightness(1.1)', scale: 1 },
+      { filter: 'grayscale(1) contrast(1.8)',           scale: 0.5  },
+      { filter: 'grayscale(1) contrast(2.5)',           scale: 0.75 },
+      { filter: 'grayscale(1) contrast(2) invert(1)',   scale: 1    },
+      { filter: 'grayscale(1) contrast(2) invert(1)',   scale: 0.5  },
+    ];
+
+    let result = null;
+    for (const { filter, scale } of passes) {
+      const idata = getImageData(bitmap, filter, scale);
+      result = jsQR(idata.data, idata.width, idata.height, { inversionAttempts: 'attemptBoth' });
+      if (result) break;
+    }
+
+    if (!result) {
+      showQrMsg(msg, 'err', '🔍 Kein QR-Code erkannt – halte die Kamera näher ran und sorge für gutes Licht!');
+      return;
+    }
+    qrValidate(result.data.trim().toUpperCase(), idx);
+
+  } catch (err) {
+    showQrMsg(msg, 'err', '⚠️ Scan fehlgeschlagen – bitte manuell eingeben.');
   }
 }
 
@@ -2967,7 +2969,7 @@ function renderChess(stage, card) {
   const idx    = state.current;
   const solved = state.solved.has(idx);
 
-  _chess = { pieces: stage.pieces.map(p => ({...p})), selected: null, targets: [] };
+  _chess = { pieces: stage.pieces.map(p => ({...p})), selected: null, targets: [], movePhase: 0, locked: false };
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Schach</p>
@@ -3023,7 +3025,7 @@ function chessRenderBoard(idx) {
 }
 
 function chessClick(idx, row, col) {
-  if (!_chess || state.solved.has(idx)) return;
+  if (!_chess || state.solved.has(idx) || _chess.locked) return;
   const stage   = STAGES[idx];
   const pieceAt = {};
   _chess.pieces.forEach(p => { pieceAt[`${p.row},${p.col}`] = p; });
@@ -3037,30 +3039,66 @@ function chessClick(idx, row, col) {
   // If a target square is clicked → attempt move
   if (_chess.selected && _chess.targets.some(t => t.row === row && t.col === col)) {
     const sol = stage.solution;
-    if (_chess.selected.row === sol.fromRow && _chess.selected.col === sol.fromCol
-        && row === sol.toRow && col === sol.toCol) {
-      // Correct! Apply the move visually before showing overlay
-      _chess.pieces = _chess.pieces.filter(p => !(p.row === row && p.col === col && p.color !== _chess.selected.color));
-      _chess.selected.row = row;
-      _chess.selected.col = col;
-      _chess.selected = null;
-      _chess.targets  = [];
-      chessRenderBoard(idx);
-      // Show checkmate overlay on top of the board
-      const wrap = document.getElementById('chess-board-wrap');
-      if (wrap) {
-        const ov = document.createElement('div');
-        ov.className = 'chess-mate-overlay';
-        ov.innerHTML = '<div class="chess-mate-label">♟ Schachmatt! 🎉</div>';
-        wrap.appendChild(ov);
+
+    if (_chess.movePhase === 0) {
+      // ── Phase 0: white's first move (Qg8+) ──
+      if (_chess.selected.row === sol.move1.fromRow && _chess.selected.col === sol.move1.fromCol
+          && row === sol.move1.toRow && col === sol.move1.toCol) {
+        // Apply queen move to empty g8 (no capture needed)
+        _chess.selected.row = sol.move1.toRow;
+        _chess.selected.col = sol.move1.toCol;
+        _chess.selected = null;
+        _chess.targets  = [];
+        _chess.locked   = true;
+        chessRenderBoard(idx);
+        if (errEl) { errEl.style.color = '#408040'; errEl.textContent = 'Sehr gut! Schwarz nimmt die Dame…'; }
+
+        // After 1200ms: animate black's forced reply (Rxg8)
+        setTimeout(() => {
+          const br = sol.blackReply;
+          // Remove white queen captured on g8
+          _chess.pieces = _chess.pieces.filter(p => !(p.row === br.toRow && p.col === br.toCol && p.color === 'w'));
+          // Move black rook from f8 to g8
+          const rook = _chess.pieces.find(p => p.row === br.fromRow && p.col === br.fromCol);
+          if (rook) { rook.row = br.toRow; rook.col = br.toCol; }
+          _chess.movePhase = 1;
+          _chess.locked    = false;
+          chessRenderBoard(idx);
+          if (errEl) { errEl.style.color = ''; errEl.textContent = 'Jetzt dein zweiter Zug – Schachmatt!'; }
+        }, 1200);
+      } else {
+        if (errEl) { errEl.style.color = ''; errEl.textContent = 'Das ist leider nicht der richtige erste Zug. Versuche es nochmal!'; }
+        _chess.selected = null;
+        _chess.targets  = [];
+        chessRenderBoard(idx);
       }
-      state.solved.add(idx);
-      setTimeout(() => render(), 2200);
-    } else {
-      if (errEl) errEl.textContent = 'Das ist leider nicht Schachmatt. Versuche es nochmal!';
-      _chess.selected = null;
-      _chess.targets  = [];
-      chessRenderBoard(idx);
+
+    } else if (_chess.movePhase === 1) {
+      // ── Phase 1: white's second move (Nf7#) ──
+      if (_chess.selected.row === sol.move2.fromRow && _chess.selected.col === sol.move2.fromCol
+          && row === sol.move2.toRow && col === sol.move2.toCol) {
+        // Apply knight move to empty f7
+        _chess.selected.row = sol.move2.toRow;
+        _chess.selected.col = sol.move2.toCol;
+        _chess.selected = null;
+        _chess.targets  = [];
+        chessRenderBoard(idx);
+        // Show checkmate overlay
+        const wrap = document.getElementById('chess-board-wrap');
+        if (wrap) {
+          const ov = document.createElement('div');
+          ov.className = 'chess-mate-overlay';
+          ov.innerHTML = '<div class="chess-mate-label">♟ Schachmatt! 🎉</div>';
+          wrap.appendChild(ov);
+        }
+        state.solved.add(idx);
+        setTimeout(() => render(), 2200);
+      } else {
+        if (errEl) { errEl.style.color = ''; errEl.textContent = 'Das ist leider nicht Schachmatt. Versuche es nochmal!'; }
+        _chess.selected = null;
+        _chess.targets  = [];
+        chessRenderBoard(idx);
+      }
     }
     return;
   }
