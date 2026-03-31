@@ -222,7 +222,7 @@
       border: 1.5px solid rgba(255,255,255,.85);
       backdrop-filter: blur(14px);
     }
-    @media (max-width:600px) { .stage-card { padding:22px 18px; } }
+    @media (max-width:600px) { .stage-card { padding:14px 14px; } }
 
     .stage-inner { animation: stageIn .38s ease; }
     @keyframes stageIn {
@@ -1180,6 +1180,69 @@
       font-weight: 700;
       min-height: 1.2em;
       text-align: center;
+    }
+
+
+    /* ════════════════════════════════════════════
+       MOBILE COMPACT LAYOUT  (≤ 600 px)
+       Goal: fit most stages without scrolling
+    ════════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      /* ── Screen / wrap padding ── */
+      #screen-game  { padding: 8px 10px 12px; gap: 8px; }
+      .game-wrap    { gap: 8px; }
+
+      /* ── Progress bar ── */
+      .progress-label   { display: none; }        /* eggs speak for themselves */
+      .progress-section { gap: 2px; }
+      .progress-bar     { padding: 6px 8px 8px; gap: 5px; }
+      .egg-pg           { width: 24px; height: 31px; }
+
+      /* ── Stage card ── */
+      /* padding already overridden to 14px 14px above */
+
+      /* ── Headings ── */
+      .eyebrow     { margin-bottom: 2px; }
+      .stage-title { font-size: 1.3rem; margin-bottom: 8px; }
+
+      /* ── Buttons ── */
+      .btn-lg { font-size: 1.15rem; padding: 12px 36px; }
+      .btn-md { font-size: .95rem;  padding: 10px 22px; }
+      .btn-sm { font-size: .9rem;   padding:  9px 18px; }
+
+      /* ── Nav bar ── */
+      .nav-bar { padding: 0; }
+
+      /* ── Word riddle ── */
+      .riddle-scroll { padding: 14px 16px; margin-bottom: 12px; }
+      .riddle-text   { font-size: .95rem; line-height: 1.65; }
+
+      /* ── Generic instruction text ── */
+      .diff-instructions { font-size: .88rem; margin-bottom: 10px; }
+
+      /* ── Sudoku ── */
+      .sudoku-board { --sdq: min(calc((100vw - 56px) / 6), 54px); }
+      .sudoku-wrap  { gap: 10px; }
+      .sudoku-sym-btn, .sudoku-erase-btn { width: 44px; height: 44px; font-size: 1.3rem; }
+
+      /* ── Chess ── */
+      .chess-board { --sq: min(calc((100vw - 56px) / 8), 42px); }
+      .chess-outer { gap: 10px; }
+
+      /* ── Find difference ── */
+      .diff-score-row   { margin-bottom: 8px; }
+      .diff-countdown-bar { margin-top: 8px; }
+
+      /* ── Egg count ── */
+      .egg-count-photo  { margin-bottom: 12px; }
+      .egg-count-inputs { margin-bottom: 10px; }
+
+      /* ── Listen / Origami ── */
+      .listen-player-wrap { padding: 18px 16px 16px; margin-bottom: 12px; }
+      .origami-video-wrap { margin-bottom: 12px; }
+
+      /* ── Success / error messages ── */
+      .msg { padding: 9px 14px; font-size: .88rem; margin-bottom: 10px; }
     }
 
   </style>
