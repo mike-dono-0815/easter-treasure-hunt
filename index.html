@@ -878,7 +878,6 @@
       color: var(--brown);
     }
 
-    /* bunny flash */
     .diff-bunny-wrap {
       display: flex;
       flex-direction: column;
@@ -978,11 +977,169 @@
       85%  { opacity:1; }
       100% { transform: translateY(108vh) rotate(720deg); opacity:0; }
     }
+    /* ════════════════════════════
+       SUDOKU
+    ════════════════════════════ */
+    .sudoku-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+    }
+    .sudoku-board {
+      --sdq: min(calc((100vw - 80px) / 6), 54px);
+      display: grid;
+      grid-template-columns: repeat(6, var(--sdq));
+      grid-template-rows:    repeat(6, var(--sdq));
+      border: 3px solid var(--brown);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .sudoku-cell {
+      width: var(--sdq); height: var(--sdq);
+      display: flex; align-items: center; justify-content: center;
+      font-size: calc(var(--sdq) * 0.52);
+      background: var(--cream2);
+      border-right:  1px solid #c8b090;
+      border-bottom: 1px solid #c8b090;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .1s;
+    }
+    .sudoku-cell.locked   { background: #ede4d0; cursor: default; }
+    .sudoku-cell.selected { background: #fff3a8 !important; }
+    .sudoku-cell.wrong    { background: #ffd8d8 !important; }
+    .sudoku-cell.box-right  { border-right:  2.5px solid var(--brown); }
+    .sudoku-cell.box-bottom { border-bottom: 2.5px solid var(--brown); }
+    .sudoku-cell.last-col   { border-right:  none; }
+    .sudoku-cell.last-row   { border-bottom: none; }
+    .sudoku-palette {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .sudoku-sym-btn {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      border: 2px solid #c8b090;
+      background: var(--cream2);
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .1s, transform .1s;
+    }
+    .sudoku-sym-btn:active { background: var(--yellow); transform: scale(.92); }
+    .sudoku-erase-btn {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      border: 2px solid #c8b090;
+      background: #f8e8e8;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      color: #c04040;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sudoku-hint {
+      font-size: .8rem;
+      color: var(--text-s);
+      text-align: center;
+    }
+    .sudoku-err {
+      color: #c04040;
+      font-size: .88rem;
+      font-weight: 700;
+      text-align: center;
+      min-height: 1.2em;
+    }
+
+    /* ════════════════════════════
+       CHESS
+    ════════════════════════════ */
+    .chess-outer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .chess-desc {
+      text-align: center;
+      font-size: .95rem;
+      color: var(--text-s);
+      max-width: 340px;
+    }
+    .chess-board {
+      --sq: min(calc((100vw - 80px) / 8), 42px);
+      display: grid;
+      grid-template-columns: repeat(8, var(--sq));
+      grid-template-rows:    repeat(8, var(--sq));
+      border: 3px solid var(--brown);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px var(--shadow);
+      user-select: none;
+    }
+    .chess-sq {
+      width: var(--sq); height: var(--sq);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: background .12s;
+    }
+    .chess-sq.light { background: #f0d9b5; }
+    .chess-sq.dark  { background: #b58863; }
+    .chess-sq.selected { background: #f6f669 !important; }
+    .chess-sq.target   { background: #cdd16f !important; }
+    .chess-sq.target::after {
+      content: '';
+      width: 32%; height: 32%;
+      background: rgba(0,0,0,.18);
+      border-radius: 50%;
+    }
+    .chess-piece {
+      font-size: calc(var(--sq) * 0.72);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .chess-piece.wp { color: #fff; text-shadow: 0 0 2px #333, 0 1px 3px rgba(0,0,0,.6); }
+    .chess-piece.bp { color: #1a1a1a; text-shadow: 0 0 2px #fff, 0 1px 2px rgba(0,0,0,.3); }
+    .chess-coords {
+      font-size: .78rem;
+      color: var(--text-s);
+      letter-spacing: .05em;
+    }
+    .chess-hint-btn {
+      background: none;
+      border: 1.5px solid var(--lavender);
+      border-radius: var(--r-pill);
+      padding: 6px 18px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .85rem;
+      color: var(--text-s);
+      cursor: pointer;
+    }
+    .chess-hint-btn:hover { background: var(--lavender); color: var(--brown); }
+    .chess-err {
+      color: #c04040;
+      font-size: .88rem;
+      font-weight: 700;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
   </style>
 </head>
 <body>
 
   <!-- ══════════════ INTRO ══════════════ -->
+  <audio id="intro-music" src="Intro.mp3" loop></audio>
   <div id="screen-intro" class="screen active">
     <div style="max-width:720px;width:100%;padding:36px 20px;display:flex;flex-direction:column;align-items:center;">
       <div class="intro-card">
@@ -1133,7 +1290,47 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     type:  'SNAKE',
     icon:  '🐍',
     title: 'Schlangen-Jagd!',
-    goal:  5,   // collect this many Easter eggs to win
+    goal:  10,  // collect this many Easter eggs to win
+  },
+  {
+    type:  'CHESS',
+    icon:  '♟',
+    title: 'Schach-Rätsel!',
+    description: 'Weiß ist am Zug – kannst du in einem einzigen Zug Schachmatt geben?',
+    hint:  'Der Springer auf h6 kann eine tödliche L-förmige Bewegung machen… 🐴',
+    pieces: [
+      { row:2, col:7, type:'N', color:'w' }, // Nh6
+      { row:4, col:4, type:'K', color:'w' }, // Ke4
+      { row:0, col:7, type:'K', color:'b' }, // Kh8
+      { row:1, col:7, type:'R', color:'b' }, // Rh7
+      { row:0, col:6, type:'R', color:'b' }, // Rg8
+      { row:1, col:6, type:'P', color:'b' }, // Pg7
+    ],
+    solution: { fromRow:2, fromCol:7, toRow:1, toCol:5 }, // Nh6→f7#
+  },
+  {
+    type:    'SUDOKU',
+    icon:    '🧩',
+    title:   'Oster-Sudoku!',
+    symbols: ['🥚','🐣','🐰','🌸','🌷','🍫'],
+    // 0 = empty cell (to be filled by player)
+    // Each row, column and 2×3 box contains each symbol (1–6) exactly once
+    puzzle: [
+      [1,0,3,4,0,6],
+      [4,5,0,1,2,0],
+      [0,1,4,0,6,5],
+      [0,6,5,2,1,0],
+      [5,0,1,0,0,2],
+      [0,4,2,0,0,1],
+    ],
+    solution: [
+      [1,2,3,4,5,6],
+      [4,5,6,1,2,3],
+      [2,1,4,3,6,5],
+      [3,6,5,2,1,4],
+      [5,3,1,6,4,2],
+      [6,4,2,5,3,1],
+    ],
   },
 ];
 
@@ -1193,6 +1390,9 @@ const state = {
   origamiPhoto:   {},   // { stageIdx: dataURL }
   scrabbleFound:  {},   // { stageIdx: Set<word> }
   qrScanned:      {},   // { stageIdx: Set<code> }
+  sudokuGrid:     {},   // { stageIdx: [[...], ...] }
+  sudokuSel:      {},   // { stageIdx: {row,col} | null }
+  sudokuWrong:    {},   // { stageIdx: Set<"r,c"> }
 };
 
 // Timers for the before→bunny→after sequence
@@ -1216,6 +1416,8 @@ function showScreen(id) {
 }
 
 function startGame() {
+  const music = document.getElementById('intro-music');
+  if (music) { music.pause(); music.currentTime = 0; }
   state.current      = 0;
   state.solved.clear();
   state.diffFound    = {};
@@ -1224,6 +1426,9 @@ function startGame() {
   state.origamiPhoto   = {};
   state.scrabbleFound  = {};
   state.qrScanned      = {};
+  state.sudokuGrid     = {};
+  state.sudokuSel      = {};
+  state.sudokuWrong    = {};
   showScreen('screen-game');
   render();
 }
@@ -1279,6 +1484,8 @@ function render() {
   if (stage.type === 'SCRABBLE')        renderScrabble(stage, card);
   if (stage.type === 'QR_SCAN')         renderQrScan(stage, card);
   if (stage.type === 'SNAKE')           renderSnake(stage, card);
+  if (stage.type === 'CHESS')           renderChess(stage, card);
+  if (stage.type === 'SUDOKU')          renderSudoku(stage, card);
 }
 
 /* ═══════════════════════════════════════
@@ -1891,40 +2098,15 @@ function renderDiffBefore(stage, card, idx) {
     if (timeLeft <= 0) { clearInterval(_diffCountdown); _diffCountdown = null; }
   }, 1000);
 
-  // After 10 s → bunny flash
+  // After 10 s → switch directly to 'after' image
   _diffTimeouts.push(setTimeout(() => {
     clearInterval(_diffCountdown); _diffCountdown = null;
-    renderDiffBunny(stage, card, idx);
+    state.diffPhase[idx] = 'after';
+    renderDiffAfter(stage, card, idx);
   }, 10000));
 }
 
-/* ── Phase 2: flash Easter Bunny for 1 second ── */
-function renderDiffBunny(stage, card, idx) {
-  const found = state.diffFound[idx];
-  const dots  = Array.from({ length: stage.totalDifferences }, (_, i) =>
-    `<div class="diff-dot ${found.has(i) ? 'found' : ''}"></div>`).join('');
-
-  card.innerHTML = `<div class="stage-inner">
-    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
-    <p class="diff-instructions">${stage.instructions}</p>
-    <div class="diff-replay-row">
-      <span class="diff-score-label">Gefunden:</span>
-      ${dots}
-    </div>
-    <div class="diff-wrap">
-      <img src="EasterBunny.png" alt="Osterhase">
-      <div class="diff-badge">🐰 Hoppla!</div>
-    </div>
-  </div>`;
-
-  _diffTimeouts.push(setTimeout(() => {
-    state.diffPhase[idx] = 'after';
-    renderDiffAfter(stage, card, idx);
-  }, 1000));
-}
-
-/* ── Phase 3: spot-the-difference on the 'after' image ── */
+/* ── Phase 2: spot-the-difference on the 'after' image ── */
 function renderDiffAfter(stage, card, idx) {
   const found  = state.diffFound[idx];
   const solved = state.solved.has(idx);
@@ -2155,6 +2337,8 @@ function snakeTick(idx) {
 
     if (_sg.score >= _sg.goal) { snakeWin(idx); return; }
     _sg.food = snakeSpawnFood();
+    // Grow by 2: keep the tail (don't pop) and add one more copy of the last segment
+    _sg.body.push({..._sg.body[_sg.body.length - 1]});
   } else {
     _sg.body.pop();
   }
@@ -2311,6 +2495,281 @@ function snakeDarken(hex, amt) {
 }
 
 /* ═══════════════════════════════════════
+   SUDOKU
+   ═══════════════════════════════════════ */
+
+function renderSudoku(stage, card) {
+  const idx    = state.current;
+  const solved = state.solved.has(idx);
+
+  if (!state.sudokuGrid[idx])  state.sudokuGrid[idx]  = stage.puzzle.map(r => [...r]);
+  if (!state.sudokuSel[idx])   state.sudokuSel[idx]   = null;
+  if (!state.sudokuWrong[idx]) state.sudokuWrong[idx] = new Set();
+
+  const grid  = state.sudokuGrid[idx];
+  const sel   = state.sudokuSel[idx];
+  const wrong = state.sudokuWrong[idx];
+
+  let cells = '';
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 6; c++) {
+      const val      = grid[r][c];
+      const locked   = stage.puzzle[r][c] !== 0;
+      const selected = sel && sel.row === r && sel.col === c;
+      const sym      = val ? stage.symbols[val - 1] : '';
+
+      const cls = ['sudoku-cell',
+        locked   ? 'locked'     : 'user',
+        selected ? 'selected'   : '',
+        wrong.has(`${r},${c}`) ? 'wrong' : '',
+        c === 2              ? 'box-right'  : '',
+        (r === 1 || r === 3) ? 'box-bottom' : '',
+        c === 5 ? 'last-col' : '',
+        r === 5 ? 'last-row' : '',
+      ].filter(Boolean).join(' ');
+
+      cells += `<div class="${cls}" onclick="sudokuClick(${idx},${r},${c})">${sym}</div>`;
+    }
+  }
+
+  const allFilled = grid.every(row => row.every(v => v !== 0));
+
+  const palette = stage.symbols.map((sym, i) =>
+    `<button class="sudoku-sym-btn" onclick="sudokuPlace(${idx},${i+1})">${sym}</button>`
+  ).join('');
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Sudoku</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p style="text-align:center;font-size:.88rem;color:var(--text-s);margin-bottom:14px;">
+      Jede Zeile, Spalte und jedes 2×3-Feld enthält jedes Symbol genau einmal.
+    </p>
+
+    <div class="sudoku-wrap">
+      <div class="sudoku-board">${cells}</div>
+
+      <div class="sudoku-palette">
+        ${palette}
+        <button class="sudoku-erase-btn" onclick="sudokuPlace(${idx},0)" title="Löschen">✕</button>
+      </div>
+
+      <p class="sudoku-hint">Tippe ein Feld an, dann wähle ein Symbol.</p>
+      <p class="sudoku-err" id="sudoku-err"></p>
+
+      ${allFilled && !solved
+        ? `<button class="btn btn-gold btn-md" onclick="sudokuCheck(${idx})">✅ Lösung prüfen</button>`
+        : ''}
+      ${solved
+        ? `<div class="success-banner">🧩 Perfekt gelöst! Wunderbar! 🎉</div>
+           <button class="btn-next" onclick="advanceStage()">Weiter →</button>`
+        : ''}
+    </div>
+  </div>`;
+}
+
+function sudokuClick(idx, r, c) {
+  if (state.solved.has(idx)) return;
+  if (STAGES[idx].puzzle[r][c] !== 0) return; // locked cell
+  state.sudokuSel[idx] = { row: r, col: c };
+  renderSudoku(STAGES[idx], document.getElementById('stage-card'));
+}
+
+function sudokuPlace(idx, val) {
+  if (state.solved.has(idx)) return;
+  const sel = state.sudokuSel[idx];
+  if (!sel) return;
+  state.sudokuGrid[idx][sel.row][sel.col] = val;
+  if (state.sudokuWrong[idx]) state.sudokuWrong[idx].delete(`${sel.row},${sel.col}`);
+  renderSudoku(STAGES[idx], document.getElementById('stage-card'));
+}
+
+function sudokuCheck(idx) {
+  const stage = STAGES[idx];
+  const grid  = state.sudokuGrid[idx];
+  const wrong = new Set();
+
+  for (let r = 0; r < 6; r++)
+    for (let c = 0; c < 6; c++)
+      if (grid[r][c] !== stage.solution[r][c]) wrong.add(`${r},${c}`);
+
+  state.sudokuWrong[idx] = wrong;
+
+  if (wrong.size === 0) {
+    state.solved.add(idx);
+    render();
+  } else {
+    renderSudoku(stage, document.getElementById('stage-card'));
+    const err = document.getElementById('sudoku-err');
+    if (err) err.textContent = `${wrong.size} Feld${wrong.size > 1 ? 'er sind' : ' ist'} falsch – schau nochmal hin!`;
+  }
+}
+
+/* ═══════════════════════════════════════
+   CHESS
+   ═══════════════════════════════════════ */
+
+const CHESS_SYM = {
+  wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
+  bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟',
+};
+
+let _chess = null; // { pieces, selected, targets }
+
+function renderChess(stage, card) {
+  const idx    = state.current;
+  const solved = state.solved.has(idx);
+
+  _chess = { pieces: stage.pieces.map(p => ({...p})), selected: null, targets: [] };
+
+  card.innerHTML = `<div class="stage-inner">
+    <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Schach</p>
+    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <p class="chess-desc">${stage.description}</p>
+
+    <div class="chess-outer">
+      <div class="chess-board" id="chess-board"></div>
+      <p class="chess-coords" id="chess-coords">&nbsp;</p>
+      <p class="chess-err" id="chess-err"></p>
+      <button class="chess-hint-btn" onclick="document.getElementById('chess-hint').style.display='block';this.style.display='none';">💡 Hinweis anzeigen</button>
+      <p id="chess-hint" style="display:none;font-size:.85rem;color:var(--text-s);text-align:center;max-width:300px;">${stage.hint}</p>
+    </div>
+
+    ${solved ? `<div class="success-banner">♟ Schachmatt! Wunderbar! 🎉</div>
+      <button class="btn-next" onclick="advanceStage()">Weiter →</button>` : ''}
+  </div>`;
+
+  chessRenderBoard(idx);
+}
+
+function chessRenderBoard(idx) {
+  const board = document.getElementById('chess-board');
+  if (!board || !_chess) return;
+  const stage = STAGES[idx];
+
+  // Build piece lookup
+  const pieceAt = {};
+  _chess.pieces.forEach(p => { pieceAt[`${p.row},${p.col}`] = p; });
+
+  board.innerHTML = '';
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const sq  = document.createElement('div');
+      const key = `${row},${col}`;
+      sq.className = 'chess-sq ' + ((row + col) % 2 === 0 ? 'light' : 'dark');
+      if (_chess.selected && _chess.selected.row === row && _chess.selected.col === col)
+        sq.classList.add('selected');
+      if (_chess.targets.some(t => t.row === row && t.col === col))
+        sq.classList.add('target');
+
+      const piece = pieceAt[key];
+      if (piece) {
+        const sp  = document.createElement('span');
+        sp.className = 'chess-piece ' + (piece.color === 'w' ? 'wp' : 'bp');
+        sp.textContent = CHESS_SYM[piece.color + piece.type];
+        sq.appendChild(sp);
+      }
+
+      sq.addEventListener('click', () => chessClick(idx, row, col));
+      board.appendChild(sq);
+    }
+  }
+}
+
+function chessClick(idx, row, col) {
+  if (!_chess || state.solved.has(idx)) return;
+  const stage   = STAGES[idx];
+  const pieceAt = {};
+  _chess.pieces.forEach(p => { pieceAt[`${p.row},${p.col}`] = p; });
+
+  const clickedPiece = pieceAt[`${row},${col}`];
+  const errEl        = document.getElementById('chess-err');
+  const coordEl      = document.getElementById('chess-coords');
+  const files        = 'abcdefgh';
+  const ranks        = '87654321';
+
+  // If a target square is clicked → attempt move
+  if (_chess.selected && _chess.targets.some(t => t.row === row && t.col === col)) {
+    const sol = stage.solution;
+    if (_chess.selected.row === sol.fromRow && _chess.selected.col === sol.fromCol
+        && row === sol.toRow && col === sol.toCol) {
+      // Correct!
+      state.solved.add(idx);
+      render();
+    } else {
+      if (errEl) errEl.textContent = 'Das ist leider nicht Schachmatt. Versuche es nochmal!';
+      _chess.selected = null;
+      _chess.targets  = [];
+      chessRenderBoard(idx);
+    }
+    return;
+  }
+
+  // Select a white piece
+  if (clickedPiece && clickedPiece.color === 'w') {
+    _chess.selected = clickedPiece;
+    _chess.targets  = chessGetMoves(clickedPiece, _chess.pieces);
+    if (coordEl) coordEl.textContent = files[col] + ranks[row];
+    if (errEl)   errEl.textContent   = '';
+    chessRenderBoard(idx);
+    return;
+  }
+
+  // Deselect
+  _chess.selected = null;
+  _chess.targets  = [];
+  if (coordEl) coordEl.textContent = '';
+  chessRenderBoard(idx);
+}
+
+function chessGetMoves(piece, pieces) {
+  const occupied = new Set(pieces.map(p => `${p.row},${p.col}`));
+  const friendly = new Set(pieces.filter(p => p.color === piece.color).map(p => `${p.row},${p.col}`));
+  const moves    = [];
+
+  function tryAdd(r, c) {
+    if (r < 0 || r > 7 || c < 0 || c > 7) return false;
+    const key = `${r},${c}`;
+    if (friendly.has(key)) return false;
+    moves.push({ row: r, col: c });
+    return !occupied.has(key); // false = blocked, stop sliding
+  }
+
+  function slide(dr, dc) {
+    let r = piece.row + dr, c = piece.col + dc;
+    while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+      if (!tryAdd(r, c)) break;
+      r += dr; c += dc;
+    }
+  }
+
+  const { type, row, col } = piece;
+
+  if (type === 'N') {
+    [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]
+      .forEach(([dr,dc]) => tryAdd(row+dr, col+dc));
+  } else if (type === 'R') {
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => slide(dr,dc));
+  } else if (type === 'B') {
+    [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => slide(dr,dc));
+  } else if (type === 'Q') {
+    [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => slide(dr,dc));
+  } else if (type === 'K') {
+    [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]
+      .forEach(([dr,dc]) => tryAdd(row+dr, col+dc));
+  } else if (type === 'P') {
+    // white pawn moves up (row--)
+    if (!occupied.has(`${row-1},${col}`)) tryAdd(row-1, col);
+    if (row === 6 && !occupied.has(`${row-1},${col}`) && !occupied.has(`${row-2},${col}`)) tryAdd(row-2, col);
+    // captures
+    [[-1,-1],[-1,1]].forEach(([dr,dc]) => {
+      const key = `${row+dr},${col+dc}`;
+      if (occupied.has(key) && !friendly.has(key)) tryAdd(row+dr, col+dc);
+    });
+  }
+  return moves;
+}
+
+/* ═══════════════════════════════════════
    NAVIGATION
    ═══════════════════════════════════════ */
 
@@ -2426,7 +2885,11 @@ document.addEventListener('keydown', e => {
       if (!state.qrScanned[idx]) state.qrScanned[idx] = new Set();
       stage.codes.forEach(c => state.qrScanned[idx].add(c));
     }
-    // SNAKE: just mark solved, no extra state needed
+    // SNAKE / CHESS: just mark solved, no extra state needed
+    if (stage.type === 'SUDOKU') {
+      state.sudokuGrid[idx]  = stage.solution.map(r => [...r]);
+      state.sudokuWrong[idx] = new Set();
+    }
 
     if (stage.type === 'ORIGAMI') {
       state.origamiStep[idx]  = 1; // jump straight to photo phase
@@ -2436,6 +2899,22 @@ document.addEventListener('keydown', e => {
     render();
   }
 });
+
+// Start intro music on first user interaction (browsers require a gesture)
+(function() {
+  const music = document.getElementById('intro-music');
+  if (!music) return;
+  function tryPlay() {
+    const intro = document.getElementById('screen-intro');
+    if (intro && intro.classList.contains('active')) {
+      music.play().catch(() => {});
+    }
+    document.removeEventListener('pointerdown', tryPlay);
+    document.removeEventListener('keydown', tryPlay);
+  }
+  document.addEventListener('pointerdown', tryPlay);
+  document.addEventListener('keydown', tryPlay);
+})();
 </script>
 </body>
 </html>
