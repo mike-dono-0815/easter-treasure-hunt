@@ -611,11 +611,11 @@
        EGG COUNT
     ════════════════════════════ */
     .egg-count-photo {
-      width: 100%;
+      width: 70%;
       border-radius: 14px;
       box-shadow: 0 4px 20px var(--shadow);
       display: block;
-      margin-bottom: 22px;
+      margin: 0 15% 22px;
     }
     .egg-count-inputs {
       display: flex;
@@ -1459,8 +1459,8 @@ Es hat Ostereier gemopst – o je!
 Wie viele hat es gefressen? Das weißt nur du, he he!`,
     hint:  'Schau genau beim Vogelhaus im Bild – der rosa Hase versteckt sich dort ganz in der Nähe! 🌸',
     question: 'Wie viele Eier hat der rosa Hase gefressen?',
-    labels:   ['Rote Eier 🔴', 'Grüne Eier 🟢', 'Blaue Eier 🔵'],
-    answers:  [2, 0, 1],
+    labels:   ['Gelbe Eier 🟡', 'Orangene Eier 🟠', 'Blaue Eier 🔵'],
+    answers:  [2, 2, 3],
   },
   {
     type:    'LISTEN',
@@ -2010,7 +2010,7 @@ function renderQrScan(stage, card) {
     ${solved
       ? `<div class="msg ok show">🎉 Alle ${total} QR-Codes gefunden! Weiter geht's!</div>`
       : `<div class="qr-scan-btn-wrap">
-           <label class="btn btn-gold btn-md">
+           <label class="btn btn-gold btn-md" id="qr-scan-btn">
              📷 QR-Code scannen
              <input type="file" accept="image/*" capture="environment"
                     onchange="qrHandlePhoto(event, ${idx})">
@@ -2040,55 +2040,38 @@ async function qrHandlePhoto(e, idx) {
   e.target.value = '';
 
   const msg = document.getElementById('qr-msg');
+  const btn = document.getElementById('qr-scan-btn');
+
+  // Disable button and show scanning status
+  if (btn) { btn.style.pointerEvents = 'none'; btn.style.opacity = '0.5'; }
   showQrMsg(msg, 'err', '🔍 Wird gescannt…');
 
   try {
     const bitmap = await createImageBitmap(file);
 
-    // Cap to 800px max — phone cameras are 8-12MP but QR codes need ~600px max.
-    // This makes every pass fast; the early break handles the rest.
-    const MAX = 400;
+    // Scale to max 800px — enough for a close-up QR code, keeps jsQR fast
+    const MAX = 800;
     const ratio = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
-    const baseW = Math.round(bitmap.width  * ratio);
-    const baseH = Math.round(bitmap.height * ratio);
+    const w = Math.round(bitmap.width  * ratio);
+    const h = Math.round(bitmap.height * ratio);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    const idata = canvas.getContext('2d').getImageData(0, 0, w, h);
 
-    // Helper: draw pre-scaled bitmap to canvas with optional CSS filter, return ImageData
-    function getImageData(filter, scale) {
-      const w = Math.round(baseW * scale);
-      const h = Math.round(baseH * scale);
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      const ctx = c.getContext('2d');
-      if (filter) ctx.filter = filter;
-      ctx.drawImage(bitmap, 0, 0, w, h);
-      return ctx.getImageData(0, 0, w, h);
-    }
-
-    // Multi-pass attempts — stops immediately on first success
-    const passes = [
-      { filter: null,                                         scale: 1    },
-      { filter: 'grayscale(1) contrast(1.8)',                 scale: 1    },
-      { filter: 'grayscale(1) contrast(2.5) brightness(1.1)', scale: 1   },
-      { filter: 'grayscale(1) contrast(2) invert(1)',         scale: 1    },
-      { filter: 'grayscale(1) contrast(2.5)',                 scale: 0.75 },
-      { filter: 'grayscale(1) contrast(2) invert(1)',         scale: 0.75 },
-    ];
-
-    let result = null;
-    for (const { filter, scale } of passes) {
-      const idata = getImageData(filter, scale);
-      result = jsQR(idata.data, idata.width, idata.height, { inversionAttempts: 'attemptBoth' });
-      if (result) break;
-    }
+    const result = jsQR(idata.data, idata.width, idata.height, { inversionAttempts: 'attemptBoth' });
 
     if (!result) {
-      showQrMsg(msg, 'err', '🔍 Kein QR-Code erkannt – halte die Kamera näher ran und sorge für gutes Licht!');
+      showQrMsg(msg, 'err', '❌ Kein QR-Code erkannt – bitte nochmal versuchen oder Code manuell eingeben.');
       return;
     }
     qrValidate(result.data.trim().toUpperCase(), idx);
 
   } catch (err) {
     showQrMsg(msg, 'err', '⚠️ Scan fehlgeschlagen – bitte manuell eingeben.');
+  } finally {
+    // Re-enable button regardless of outcome
+    if (btn) { btn.style.pointerEvents = ''; btn.style.opacity = ''; }
   }
 }
 
