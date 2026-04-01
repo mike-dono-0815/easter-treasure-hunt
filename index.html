@@ -1526,10 +1526,10 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     type:  'QR_SCAN',
     icon:  '📱',
     title: 'QR-Code-Jagd!',
-    total: 6,
+    total: 5,
     // ── Each physical QR code should encode one of these exact values ──
     // Generate free QR codes at e.g. https://www.qrcode-monkey.com/
-    codes: ['OSTEREI-1','OSTEREI-2','OSTEREI-3','OSTEREI-4','OSTEREI-5','OSTEREI-6'],
+    codes: ['OSTEREI-1','OSTEREI-2','OSTEREI-4','OSTEREI-5','OSTEREI-6'],
   },
   {
     type:  'SNAKE',
@@ -2055,7 +2055,7 @@ function renderQrScan(stage, card) {
            </summary>
            <div class="qr-manual-row" style="margin-top:10px">
              <input id="qr-manual" class="answer-input" type="text"
-                    placeholder="z.B. OSTEREI-3" autocomplete="off" autocorrect="off"
+                    placeholder="z.B. OSTEREI-1" autocomplete="off" autocorrect="off"
                     onkeydown="if(event.key==='Enter')qrManualSubmit(${idx})">
              <button class="btn btn-ghost btn-sm" onclick="qrManualSubmit(${idx})">OK</button>
            </div>
