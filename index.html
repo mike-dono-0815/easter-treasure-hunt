@@ -205,7 +205,7 @@
       backdrop-filter: blur(10px);
       border: 1.5px solid rgba(255,255,255,.82);
     }
-    .progress-bar { padding-bottom: 10px; }
+    .progress-bar { padding-top: 10px; padding-bottom: 10px; }
     .egg-pg { width: 36px; height: 47px; transition: transform .4s cubic-bezier(.34,1.56,.64,1), filter .4s; overflow: visible; }
     .egg-pg.current { transform: scale(1.18); filter: drop-shadow(0 3px 8px rgba(232,168,32,.55)); }
     .egg-pg.done    { filter: drop-shadow(0 2px 6px rgba(100,190,100,.45)); }
@@ -1420,7 +1420,6 @@ const STAGES = [
 warte ich, bis du mich entdeckst.
 Im Garten, im Haus, hinter Busch und Stein –
 wer findet mich wohl? Das bist du allein!
-
 Was bin ich?`,
     answers: ['ei', 'osterei', 'ein ei', 'das osterei', 'ein osterei', 'die ostereier', 'ostereier'],
     hint:    'Am Ostermorgen suche ich dich im Garten! 🌸',
@@ -2353,7 +2352,7 @@ function renderDiffBefore(stage, card, idx) {
     </div>
     <div class="diff-wrap">
       <img src="${stage.imageBefore}" alt="Original">
-      <div class="diff-badge">Original – merke es dir! (<strong id="diff-count-num">10</strong>s)</div>
+      <div class="btn btn-ghost btn-sm diff-replay-overlay" style="pointer-events:none">Original – merke es dir! (<strong id="diff-count-num">10</strong>s)</div>
     </div>
     <div class="diff-countdown-bar" style="margin-top:10px">
       <div class="diff-countdown-fill" id="diff-count-fill"></div>
@@ -2407,7 +2406,6 @@ function renderDiffAfter(stage, card, idx) {
 
     <div class="diff-wrap ${solved ? '' : 'clickable'}" id="diff-after">
       <img src="${stage.imageAfter}" alt="Finde die Änderungen">
-      <div class="diff-badge">Finde die Änderungen!</div>
       ${!solved ? `<button class="btn btn-ghost btn-sm diff-replay-overlay" onclick="replayDiffSequence(${idx})">👀 Original nochmal anschauen</button>` : ''}
     </div>
   </div>`;
