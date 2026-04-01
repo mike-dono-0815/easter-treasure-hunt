@@ -1,0 +1,18 @@
+{
+  "name": "Die Suche nach dem Osternest",
+  "short_name": "Osternest",
+  "description": "Ein interaktives Oster-Schatzsuche-Spiel mit 10 Mini-Spielen",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf5e8",
+  "theme_color": "#e8a820",
+  "icons": [
+    {
+      "src": "EasterBunny.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
