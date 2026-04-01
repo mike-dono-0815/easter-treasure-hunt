@@ -245,6 +245,25 @@
       color: var(--brown);
       margin-bottom: 22px;
       line-height: 1.15;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+    }
+    .stage-title::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 50%;
+      transform: translateX(-50%) scaleX(0);
+      transform-origin: center;
+      width: 60%;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--gold);
+      transition: transform 5s linear;
+      pointer-events: none;
+    }
+    .stage-title.skipping::after {
+      transform: translateX(-50%) scaleX(1);
     }
 
     /* ── Nav bar ── */
@@ -1397,7 +1416,7 @@ In der Küche bin ich groß zu Haus,
 ein Häschen legte etwas aus:
 Mach meine Tür ganz leise auf –
 da wartet dein Osternest drauf!"</p>
-        <button class="prize-nest-reveal" onclick="document.getElementById('nest-reveal').style.display='block';this.style.display='none';">💡 Wo ist es?</button>
+        <button class="prize-nest-reveal" onclick="document.getElementById('nest-reveal').style.display='block';this.style.display='none';">💡 Hinweis: Wo ist das Nest?</button>
         <p class="prize-nest-reveal-text" id="nest-reveal">🔥 Im Backrohr in der Küche! 🥚🌸</p>
       </div>
 
@@ -1458,7 +1477,12 @@ Es hat Ostereier gemopst – o je!
 Wie viele hat es gefressen? Das weißt nur du, he he!`,
     hint:  'Schau genau beim Vogelhaus im Bild – der rosa Hase versteckt sich dort ganz in der Nähe! 🌸',
     question: 'Wie viele Eier hat der rosa Hase gefressen?',
-    labels:   ['Gelbe Eier 🟡', 'Orangene Eier 🟠', 'Blaue Eier 🔵'],
+    labels:   ['Gelbe Eier', 'Orangene Eier', 'Blaue Eier'],
+    colors:   [
+      { fill:'#f5e060', stroke:'#d8c020', band:'#c09810' },
+      { fill:'#f8a840', stroke:'#e07820', band:'#c05810' },
+      { fill:'#a8d0f4', stroke:'#78a8e0', band:'#5888d0' },
+    ],
     answers:  [2, 2, 3],
   },
   {
@@ -1505,7 +1529,7 @@ Wie viele hat es gefressen? Das weißt nur du, he he!`,
     type:  'SNAKE',
     icon:  '🐍',
     title: 'Schlangen-Jagd!',
-    goal:  10,  // collect this many Easter eggs to win
+    goal:  15,  // collect this many Easter eggs to win
   },
   {
     type:  'CHESS',
@@ -1762,7 +1786,7 @@ function renderWordRiddle(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Rätsel</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
 
     <div class="riddle-scroll">
       <p class="riddle-text">${stage.riddle}</p>
@@ -1832,7 +1856,7 @@ function renderOrigami(stage, card) {
 function renderOrigamiVideo(stage, card, idx) {
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Origami</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <p class="diff-instructions">Schau dir das Video an und falte deinen eigenen Papier-Osterhasen nach. Du brauchst ein quadratisches Blatt Papier!</p>
     <div class="origami-video-wrap">
       <iframe src="https://www.youtube.com/embed/${stage.videoId}?rel=0"
@@ -1854,7 +1878,7 @@ function renderOrigamiPhoto(stage, card, idx) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Origami</p>
-    <h2 class="stage-title">${stage.icon} Zeig dein Werk!</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} Zeig dein Werk!</h2>
 
     ${photo ? `
       <p class="origami-amazing">⭐ Amazing! ⭐</p>
@@ -1912,7 +1936,7 @@ function renderListen(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Lied</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
 
     <div class="listen-player-wrap">
       <div class="listen-note-row">🎶 🐣 🎶</div>
@@ -1993,12 +2017,13 @@ function renderQrScan(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; QR-Code-Jagd</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
 
     <p class="diff-instructions">
-      Der Osterhase hat <strong>${total} QR-Codes</strong> im Haus versteckt!
+      Der Osterhase hat <strong>${total} QR-Codes</strong> im Haus an den Wänden versteckt!
       Finde sie alle und fotografiere jeden Code mit der Kamera.
     </p>
+    <img src="qr-code-1.png" alt="Beispiel QR-Code" style="width:90px;height:90px;object-fit:contain;display:block;margin:0 auto 8px;border-radius:10px;box-shadow:0 2px 10px var(--shadow)">
 
     <div class="qr-counter">
       <span>${count}</span> / ${total} gefunden
@@ -2161,7 +2186,7 @@ function renderScrabble(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Wörter-Rätsel</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
 
     <p class="diff-instructions">Bilde mit den Buchstaben unten so viele Wörter wie möglich.<br>
     Du brauchst <strong>${needed}</strong> verschiedene Wörter, um weiterzukommen. Jeder Buchstabe darf nur so oft verwendet werden, wie er vorkommt!</p>
@@ -2250,19 +2275,27 @@ function renderEggCount(stage, card) {
   const idx    = state.current;
   const solved = state.solved.has(idx);
 
-  const inputs = stage.labels.map((label, i) => `
+  const inputs = stage.labels.map((label, i) => {
+    const col = stage.colors && stage.colors[i];
+    const eggIcon = col
+      ? `<svg width="30" height="39" viewBox="0 0 46 60" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 2px">
+           <ellipse cx="23" cy="36" rx="19" ry="25" fill="${col.fill}" stroke="${col.stroke}" stroke-width="2.2"/>
+           <path d="M6 32 Q12 39 23 35 Q34 31 40 33" stroke="${col.band}" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+         </svg>`
+      : '';
+    return `
     <div class="egg-count-field">
-      <span class="egg-count-label">${label}</span>
+      <span class="egg-count-label">${eggIcon}${label}</span>
       <input id="egg-input-${i}" class="egg-count-input ${solved ? 'ok' : ''}"
              type="number" min="0" max="20" value="${solved ? stage.answers[i] : ''}"
              placeholder="?" ${solved ? 'disabled' : ''}
              onkeydown="if(event.key==='Enter')checkEggCount(${idx})">
-    </div>`
-  ).join('');
+    </div>`;
+  }).join('');
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Osterdetektiv</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
 
     <img src="${stage.image}" alt="Foto" class="egg-count-photo">
 
@@ -2344,7 +2377,7 @@ function renderDiffBefore(stage, card, idx) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <p class="diff-instructions">${stage.instructions}</p>
     <div class="diff-replay-row">
       <span class="diff-score-label">Gefunden:</span>
@@ -2394,7 +2427,7 @@ function renderDiffAfter(stage, card, idx) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Fehler suchen</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <p class="diff-instructions">${stage.instructions}</p>
 
     <div class="diff-replay-row">
@@ -2486,7 +2519,7 @@ function syncDots(found, total) {
 
 const SNAKE_COLS = 15;
 const SNAKE_ROWS = 15;
-const SNAKE_CELL = 20;          // px per grid cell → 300×300 canvas
+const SNAKE_CELL = 24;          // px per grid cell → 360×360 canvas
 const SNAKE_TICK = 160;         // ms per move
 const SNAKE_EGG_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
 
@@ -2504,7 +2537,7 @@ function renderSnake(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Snake</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <p class="diff-instructions">Steuere die Schlange und sammle <strong>${stage.goal} Ostereier</strong>!
     Berühre nicht die Wände oder dich selbst.</p>
 
@@ -2818,7 +2851,7 @@ function renderSudoku(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Sudoku</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <p style="text-align:center;font-size:.88rem;color:var(--text-s);margin-bottom:14px;">
       Jede Zeile, Spalte und jedes 2×3-Feld enthält jedes Symbol genau einmal.
     </p>
@@ -2872,12 +2905,11 @@ function sudokuBeginDrag(e, idx, val, sym) {
 
     // Highlight cell under finger (hide ghost first so it doesn't block hit-test)
     ghost.style.display = 'none';
-    const under = document.elementFromPoint(ev.clientX, ev.clientY);
+    const cell = sudokuCellFromPoint(ev.clientX, ev.clientY);
     ghost.style.display = '';
 
     document.querySelectorAll('.sudoku-cell.drag-over')
       .forEach(c => c.classList.remove('drag-over'));
-    const cell = under && under.closest('.sudoku-cell');
     if (cell && !cell.classList.contains('locked')) cell.classList.add('drag-over');
   }
 
@@ -2889,8 +2921,7 @@ function sudokuBeginDrag(e, idx, val, sym) {
       .forEach(c => c.classList.remove('drag-over'));
     _sdqDrag = null;
 
-    const under = document.elementFromPoint(ev.clientX, ev.clientY);
-    const cell  = under && under.closest('.sudoku-cell');
+    const cell = sudokuCellFromPoint(ev.clientX, ev.clientY);
     if (!cell || cell.classList.contains('locked')) return;
 
     const r = +cell.dataset.r;
@@ -2904,6 +2935,22 @@ function sudokuBeginDrag(e, idx, val, sym) {
 
   document.addEventListener('pointermove', onMove, { passive: false });
   document.addEventListener('pointerup',   onEnd);
+}
+
+// Try the exact point, then probe up to 24 px in each direction so drops
+// slightly off-centre still land in the right cell.
+function sudokuCellFromPoint(x, y) {
+  const PROBE = 24;
+  const offsets = [
+    [0,0], [-PROBE,0],[PROBE,0],[0,-PROBE],[0,PROBE],
+    [-PROBE,-PROBE],[PROBE,-PROBE],[-PROBE,PROBE],[PROBE,PROBE],
+  ];
+  for (const [dx, dy] of offsets) {
+    const el = document.elementFromPoint(x + dx, y + dy);
+    const cell = el && el.closest('.sudoku-cell');
+    if (cell) return cell;
+  }
+  return null;
 }
 
 function sudokuMoveGhost(x, y) {
@@ -2960,7 +3007,7 @@ function renderChess(stage, card) {
 
   card.innerHTML = `<div class="stage-inner">
     <p class="eyebrow">Aufgabe ${idx + 1} von ${STAGES.length} &nbsp;·&nbsp; Schach</p>
-    <h2 class="stage-title">${stage.icon} ${stage.title}</h2>
+    <h2 class="stage-title" onmousedown="skipHoldStart(this)" onmouseup="skipHoldEnd(this)" onmouseleave="skipHoldEnd(this)" ontouchstart="skipHoldStart(this)" ontouchend="skipHoldEnd(this)">${stage.icon} ${stage.title}</h2>
     <div class="chess-outer">
       <p class="chess-desc">${stage.description}</p>
       <div class="chess-board-wrap" id="chess-board-wrap"><div class="chess-board" id="chess-board"></div></div>
@@ -3165,6 +3212,32 @@ function goBack() {
 function goNext() {
   if (!state.solved.has(state.current)) return;
   if (state.current === STAGES.length - 1) { showPrize(); return; }
+  state.current++;
+  render();
+}
+
+/* ── Hidden skip: long-press stage title for 5 s ── */
+let _skipTimer = null;
+
+function skipHoldStart(el) {
+  if (_skipTimer) return;
+  el.classList.add('skipping');
+  _skipTimer = setTimeout(() => {
+    _skipTimer = null;
+    el.classList.remove('skipping');
+    skipStage();
+  }, 5000);
+}
+
+function skipHoldEnd(el) {
+  if (_skipTimer) { clearTimeout(_skipTimer); _skipTimer = null; }
+  el.classList.remove('skipping');
+}
+
+function skipStage() {
+  const idx = state.current;
+  state.solved.add(idx);
+  if (idx === STAGES.length - 1) { showPrize(); return; }
   state.current++;
   render();
 }
