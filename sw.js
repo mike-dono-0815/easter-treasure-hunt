@@ -1,5 +1,5 @@
 // Minimal service worker — required for Chrome PWA install prompt
-const CACHE = 'osternest-v1';
+const CACHE = 'osternest-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -17,7 +17,8 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Network-first: always try to get fresh content, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
