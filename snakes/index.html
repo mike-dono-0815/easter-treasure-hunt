@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual">
+  <title>Easter Snake 🐍</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky1:     #aed8f0;
+      --sky2:     #cce8f4;
+      --cream1:   #fdf5e8;
+      --cream2:   #fffcf5;
+      --pink:     #f4b8c8;
+      --lavender: #cbb8e8;
+      --gold:     #e8a820;
+      --gold-lt:  #f5c840;
+      --brown:    #7a5030;
+      --text:     #3c2818;
+      --text-s:   #7a5040;
+      --shadow:   rgba(80,40,10,.13);
+      --r-card:   24px;
+      --r-pill:   50px;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(170deg, var(--sky1) 0%, var(--sky2) 22%, var(--cream1) 58%, var(--cream2) 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      opacity: .07;
+      pointer-events: none;
+      animation: bgFloat 9s ease-in-out infinite;
+      z-index: 0;
+    }
+    body::before { width:220px; height:290px; background:var(--pink);     top:-40px;  left:-50px; }
+    body::after  { width:170px; height:220px; background:var(--lavender); bottom:30px;right:-40px; animation-delay:-4.5s; }
+    @keyframes bgFloat {
+      0%,100% { transform: translateY(0)    rotate(-4deg); }
+      50%     { transform: translateY(-18px) rotate(4deg); }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,252,245,.93);
+      border-radius: var(--r-card);
+      box-shadow: 0 10px 48px var(--shadow);
+      border: 2px solid rgba(255,255,255,.85);
+      padding: 28px 24px 32px;
+      max-width: 480px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .game-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      color: var(--brown);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .game-subtitle {
+      font-size: .95rem;
+      color: var(--text-s);
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      font-family: 'Fredoka One', cursive;
+      border: none;
+      border-radius: var(--r-pill);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      letter-spacing: .3px;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.18);
+      box-shadow: 0 4px 18px rgba(232,168,32,.42), inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .btn-gold:hover  { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(232,168,32,.52), inset 0 1px 0 rgba(255,255,255,.28); }
+    .btn-gold:active { transform: translateY(0); }
+    .btn-md  { font-size:1.1rem; padding:13px 36px; }
+
+    .snake-score {
+      text-align: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.35rem;
+      color: var(--brown);
+      margin-bottom: 12px;
+    }
+    .snake-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .snake-canvas {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px var(--shadow);
+      display: block;
+      max-width: 100%;
+      image-rendering: pixelated;
+    }
+    .snake-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(255,252,245,.88);
+      border-radius: 12px;
+      backdrop-filter: blur(3px);
+    }
+    .snake-overlay-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.6rem;
+      color: var(--brown);
+    }
+    .snake-overlay-sub {
+      font-size: .9rem;
+      color: var(--text-s);
+      margin-top: -4px;
+    }
+    .snake-dpad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .snake-dpad-row {
+      display: flex;
+      gap: 4px;
+    }
+    .snake-dpad-btn {
+      width: 56px; height: 56px;
+      border-radius: 12px;
+      border: 2px solid #c8b090;
+      background: rgba(255,252,245,.92);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px var(--shadow);
+      color: var(--brown);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .1s, transform .1s;
+    }
+    .snake-dpad-btn:active { background: #f0d898; transform: scale(.9); }
+    .snake-dpad-center { background: transparent !important; border-color: transparent !important; box-shadow: none !important; pointer-events: none; }
+
+    @media (max-width: 420px) {
+      .btn-md { font-size: .95rem; padding: 10px 22px; }
+      .snake-dpad-btn { width: 50px; height: 50px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="game-title">🐍 Easter Snake</h1>
+    <p class="game-subtitle">Sammle <strong id="goal-label">12</strong> Ostereier – ohne die Wände oder dich selbst zu berühren!</p>
+
+    <div class="snake-score" id="snake-score">🥚 0 / 12</div>
+
+    <div class="snake-wrap">
+      <canvas id="snake-canvas" class="snake-canvas"
+              width="360" height="360"></canvas>
+      <div class="snake-overlay" id="snake-overlay">
+        <p class="snake-overlay-title">🐍</p>
+        <button class="btn btn-gold btn-md" onclick="snakeStart()">▶ Spiel starten</button>
+      </div>
+    </div>
+
+    <div class="snake-dpad">
+      <div class="snake-dpad-row">
+        <button class="snake-dpad-btn"
+                ontouchstart="snakeDir(0,-1);event.preventDefault()"
+                onclick="snakeDir(0,-1)">▲</button>
+      </div>
+      <div class="snake-dpad-row">
+        <button class="snake-dpad-btn"
+                ontouchstart="snakeDir(-1,0);event.preventDefault()"
+                onclick="snakeDir(-1,0)">◀</button>
+        <div class="snake-dpad-btn snake-dpad-center"></div>
+        <button class="snake-dpad-btn"
+                ontouchstart="snakeDir(1,0);event.preventDefault()"
+                onclick="snakeDir(1,0)">▶</button>
+      </div>
+      <div class="snake-dpad-row">
+        <button class="snake-dpad-btn"
+                ontouchstart="snakeDir(0,1);event.preventDefault()"
+                onclick="snakeDir(0,1)">▼</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SNAKE_COLS = 15;
+    const SNAKE_ROWS = 15;
+    const SNAKE_CELL = 24;
+    const SNAKE_TICK = 160;
+    const SNAKE_GOAL = 12;
+    const SNAKE_EGG_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
+
+    let _sg = null;
+
+    function snakeStop() {
+      if (_sg?.timer) clearInterval(_sg.timer);
+      _sg = null;
+    }
+
+    function snakeStart() {
+      snakeStop();
+      const canvas = document.getElementById('snake-canvas');
+      if (!canvas) return;
+
+      _sg = {
+        goal:     SNAKE_GOAL,
+        body:     [{x:7,y:7},{x:6,y:7},{x:5,y:7}],
+        dir:      {x:1, y:0},
+        next:     {x:1, y:0},
+        food:     null,
+        score:    0,
+        colorIdx: 0,
+        canvas,
+        ctx:      canvas.getContext('2d'),
+        timer:    null,
+      };
+      _sg.food = snakeSpawnFood();
+
+      document.getElementById('snake-overlay').style.display = 'none';
+      document.getElementById('snake-score').textContent = `🥚 0 / ${SNAKE_GOAL}`;
+
+      // Swipe detection on canvas
+      let _touch = null;
+      canvas.addEventListener('touchstart', e => {
+        _touch = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+        e.preventDefault();
+      }, {passive: false});
+      canvas.addEventListener('touchend', e => {
+        if (!_touch) return;
+        const dx = e.changedTouches[0].clientX - _touch.x;
+        const dy = e.changedTouches[0].clientY - _touch.y;
+        if (Math.abs(dx) > Math.abs(dy)) snakeDir(dx > 0 ? 1 : -1, 0);
+        else                              snakeDir(0, dy > 0 ? 1 : -1);
+        _touch = null;
+        e.preventDefault();
+      }, {passive: false});
+
+      snakeDraw();
+      _sg.timer = setInterval(snakeTick, SNAKE_TICK);
+    }
+
+    function snakeTick() {
+      if (!_sg) return;
+
+      _sg.dir = {..._sg.next};
+      const head = {x: _sg.body[0].x + _sg.dir.x, y: _sg.body[0].y + _sg.dir.y};
+
+      if (head.x < 0 || head.x >= SNAKE_COLS || head.y < 0 || head.y >= SNAKE_ROWS) {
+        snakeGameOver(); return;
+      }
+      if (_sg.body.some(s => s.x === head.x && s.y === head.y)) {
+        snakeGameOver(); return;
+      }
+
+      _sg.body.unshift(head);
+
+      if (head.x === _sg.food.x && head.y === _sg.food.y) {
+        _sg.score++;
+        _sg.colorIdx = _sg.score % SNAKE_EGG_COLORS.length;
+        const sc = document.getElementById('snake-score');
+        if (sc) sc.textContent = `🥚 ${_sg.score} / ${SNAKE_GOAL}`;
+
+        if (_sg.score >= SNAKE_GOAL) { snakeWin(); return; }
+        _sg.food = snakeSpawnFood();
+        _sg.body.push({..._sg.body[_sg.body.length - 1]});
+        _sg.body.push({..._sg.body[_sg.body.length - 1]});
+      } else {
+        _sg.body.pop();
+      }
+
+      snakeDraw();
+    }
+
+    function snakeGameOver() {
+      clearInterval(_sg.timer);
+      _sg.timer = null;
+      const {ctx, canvas} = _sg;
+      const score = _sg.score;
+
+      ctx.fillStyle = 'rgba(210,60,60,.4)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      setTimeout(() => {
+        const ov = document.getElementById('snake-overlay');
+        if (!ov) return;
+        ov.innerHTML = `
+          <p class="snake-overlay-title">💥 Game Over!</p>
+          <p class="snake-overlay-sub">Gesammelt: ${score} / ${SNAKE_GOAL} 🥚</p>
+          <button class="btn btn-gold btn-md" onclick="snakeStart()">🔄 Nochmal</button>`;
+        ov.style.display = '';
+      }, 500);
+    }
+
+    function snakeWin() {
+      clearInterval(_sg.timer);
+      _sg.timer = null;
+
+      const {ctx, canvas} = _sg;
+      ctx.fillStyle = 'rgba(60,200,80,.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      SNAKE_EGG_COLORS.forEach((c, i) =>
+        snakeDrawEgg(ctx, 25 + i * 42, canvas.height / 2, 14, c)
+      );
+
+      setTimeout(() => {
+        const ov = document.getElementById('snake-overlay');
+        if (!ov) return;
+        ov.innerHTML = `
+          <p class="snake-overlay-title">🎉 Geschafft!</p>
+          <p class="snake-overlay-sub">Alle ${SNAKE_GOAL} Eier gesammelt!</p>
+          <button class="btn btn-gold btn-md" onclick="snakeStart()">🔄 Nochmal spielen</button>`;
+        ov.style.display = '';
+      }, 700);
+    }
+
+    function snakeSpawnFood() {
+      let p;
+      do { p = {x: Math.floor(Math.random()*SNAKE_COLS), y: Math.floor(Math.random()*SNAKE_ROWS)}; }
+      while (_sg.body.some(s => s.x === p.x && s.y === p.y));
+      return p;
+    }
+
+    function snakeDir(dx, dy) {
+      if (!_sg) return;
+      if (dx !== 0 && _sg.dir.x !== 0) return;
+      if (dy !== 0 && _sg.dir.y !== 0) return;
+      _sg.next = {x: dx, y: dy};
+    }
+
+    function snakeDraw() {
+      if (!_sg) return;
+      const {ctx, canvas, body, food, colorIdx, dir} = _sg;
+      const C = SNAKE_CELL;
+
+      ctx.fillStyle = '#e8f5e2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(150,205,130,.35)';
+      ctx.lineWidth = .5;
+      for (let x = 0; x <= SNAKE_COLS; x++) { ctx.beginPath(); ctx.moveTo(x*C,0); ctx.lineTo(x*C,SNAKE_ROWS*C); ctx.stroke(); }
+      for (let y = 0; y <= SNAKE_ROWS; y++) { ctx.beginPath(); ctx.moveTo(0,y*C); ctx.lineTo(SNAKE_COLS*C,y*C); ctx.stroke(); }
+
+      body.forEach((seg, i) => {
+        const m = i === 0 ? 1 : 2;
+        ctx.fillStyle = i === 0 ? '#1a6b20' : (i % 2 === 0 ? '#3d9e45' : '#48b050');
+        snakeRoundRect(ctx, seg.x*C+m, seg.y*C+m, C-m*2, C-m*2, 5);
+        ctx.fill();
+
+        if (i === 0) {
+          const ex = seg.x*C + C/2 + dir.x * 4;
+          const ey = seg.y*C + C/2 + dir.y * 4;
+          [[ex - dir.y*3.5, ey + dir.x*3.5], [ex + dir.y*3.5, ey - dir.x*3.5]].forEach(([wx, wy]) => {
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(wx, wy, 2.8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(wx, wy, 1.4, 0, Math.PI*2); ctx.fill();
+          });
+        }
+      });
+
+      snakeDrawEgg(ctx, food.x*C + C/2, food.y*C + C/2, C * 0.37, SNAKE_EGG_COLORS[colorIdx]);
+    }
+
+    function snakeDrawIdle() {
+      const canvas = document.getElementById('snake-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const C = SNAKE_CELL;
+
+      ctx.fillStyle = '#e8f5e2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(150,205,130,.35)';
+      ctx.lineWidth = .5;
+      for (let x = 0; x <= SNAKE_COLS; x++) { ctx.beginPath(); ctx.moveTo(x*C,0); ctx.lineTo(x*C,SNAKE_ROWS*C); ctx.stroke(); }
+      for (let y = 0; y <= SNAKE_ROWS; y++) { ctx.beginPath(); ctx.moveTo(0,y*C); ctx.lineTo(SNAKE_COLS*C,y*C); ctx.stroke(); }
+
+      snakeDrawEgg(ctx, canvas.width/2, canvas.height/2, 20, '#f5e060');
+    }
+
+    function snakeDrawEgg(ctx, cx, cy, r, color) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 0.72, r, 0, 0, Math.PI*2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = snakeDarken(color, 45);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx - r*0.5, cy - r*0.12);
+      ctx.lineTo(cx + r*0.5, cy - r*0.12);
+      ctx.strokeStyle = 'rgba(255,255,255,.6)';
+      ctx.lineWidth = r * 0.28;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function snakeRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); }
+      else               { ctx.rect(x, y, w, h); }
+    }
+
+    function snakeDarken(hex, amt) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = Math.max(0, (n >> 16) - amt);
+      const g = Math.max(0, ((n >> 8 & 0xff)) - amt);
+      const b = Math.max(0, (n & 0xff) - amt);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (_sg && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        const map = {ArrowUp:{x:0,y:-1}, ArrowDown:{x:0,y:1}, ArrowLeft:{x:-1,y:0}, ArrowRight:{x:1,y:0}};
+        const d = map[e.key];
+        snakeDir(d.x, d.y);
+      }
+    });
+
+    // Draw idle state on load
+    snakeDrawIdle();
+  </script>
+</body>
+</html>
