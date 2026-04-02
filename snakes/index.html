@@ -176,7 +176,8 @@
     .snake-dpad-center { background: transparent !important; border-color: transparent !important; box-shadow: none !important; pointer-events: none; }
 
     .snake-settings {
-      margin-top: 20px;
+      margin-top: 12px;
+      margin-bottom: 4px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -235,8 +236,25 @@
 <body>
   <div class="card">
     <h1 class="game-title">🐍 Easter Snake</h1>
-    <p class="game-subtitle">Sammle <strong id="goal-label">12</strong> Ostereier – ohne die Wände oder dich selbst zu berühren!</p>
 
+    <div class="snake-settings">
+      <div class="snake-setting-row">
+        <span class="snake-setting-label">🥚 Eier-Ziel</span>
+        <div class="snake-stepper">
+          <button class="snake-stepper-btn" id="goal-dec" onclick="adjustSetting('goal',-1)">−</button>
+          <span class="snake-stepper-val" id="goal-val">12</span>
+          <button class="snake-stepper-btn" id="goal-inc" onclick="adjustSetting('goal',+1)">+</button>
+        </div>
+      </div>
+      <div class="snake-setting-row">
+        <span class="snake-setting-label">📏 Wachstum</span>
+        <div class="snake-stepper">
+          <button class="snake-stepper-btn" id="grow-dec" onclick="adjustSetting('grow',-1)">−</button>
+          <span class="snake-stepper-val" id="grow-val">3</span>
+          <button class="snake-stepper-btn" id="grow-inc" onclick="adjustSetting('grow',+1)">+</button>
+        </div>
+      </div>
+    </div>
 
     <div class="snake-score" id="snake-score">🥚 0 / 12</div>
 
@@ -270,25 +288,6 @@
                 onclick="snakeDir(0,1)">▼</button>
       </div>
     </div>
-
-    <div class="snake-settings">
-      <div class="snake-setting-row">
-        <span class="snake-setting-label">🥚 Eier-Ziel</span>
-        <div class="snake-stepper">
-          <button class="snake-stepper-btn" id="goal-dec" onclick="adjustSetting('goal',-1)">−</button>
-          <span class="snake-stepper-val" id="goal-val">12</span>
-          <button class="snake-stepper-btn" id="goal-inc" onclick="adjustSetting('goal',+1)">+</button>
-        </div>
-      </div>
-      <div class="snake-setting-row">
-        <span class="snake-setting-label">📏 Wachstum</span>
-        <div class="snake-stepper">
-          <button class="snake-stepper-btn" id="grow-dec" onclick="adjustSetting('grow',-1)">−</button>
-          <span class="snake-stepper-val" id="grow-val">3</span>
-          <button class="snake-stepper-btn" id="grow-inc" onclick="adjustSetting('grow',+1)">+</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -306,7 +305,6 @@
       if (key === 'goal') {
         snakeGoal = Math.min(20, Math.max(5, snakeGoal + delta));
         document.getElementById('goal-val').textContent = snakeGoal;
-        document.getElementById('goal-label').textContent = snakeGoal;
         document.getElementById('snake-score').textContent = `🥚 0 / ${snakeGoal}`;
         document.getElementById('goal-dec').disabled = snakeGoal <= 5;
         document.getElementById('goal-inc').disabled = snakeGoal >= 20;
