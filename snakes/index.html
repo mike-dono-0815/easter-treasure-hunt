@@ -175,6 +175,57 @@
     .snake-dpad-btn:active { background: #f0d898; transform: scale(.9); }
     .snake-dpad-center { background: transparent !important; border-color: transparent !important; box-shadow: none !important; pointer-events: none; }
 
+    .snake-settings {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 260px;
+    }
+    .snake-setting-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .snake-setting-label {
+      flex: 1;
+      font-size: .88rem;
+      color: var(--text-s);
+      font-weight: 700;
+    }
+    .snake-stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .snake-stepper-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 2px solid #c8b090;
+      background: rgba(255,252,245,.92);
+      font-size: 1.1rem;
+      font-family: 'Fredoka One', cursive;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      color: var(--brown);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .1s, transform .1s;
+      line-height: 1;
+    }
+    .snake-stepper-btn:active:not(:disabled) { background: #f0d898; transform: scale(.9); }
+    .snake-stepper-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .snake-stepper-val {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: var(--brown);
+      min-width: 28px;
+      text-align: center;
+    }
+
     @media (max-width: 420px) {
       .btn-md { font-size: .95rem; padding: 10px 22px; }
       .snake-dpad-btn { width: 50px; height: 50px; }
@@ -185,6 +236,7 @@
   <div class="card">
     <h1 class="game-title">🐍 Easter Snake</h1>
     <p class="game-subtitle">Sammle <strong id="goal-label">12</strong> Ostereier – ohne die Wände oder dich selbst zu berühren!</p>
+
 
     <div class="snake-score" id="snake-score">🥚 0 / 12</div>
 
@@ -218,6 +270,25 @@
                 onclick="snakeDir(0,1)">▼</button>
       </div>
     </div>
+
+    <div class="snake-settings">
+      <div class="snake-setting-row">
+        <span class="snake-setting-label">🥚 Eier-Ziel</span>
+        <div class="snake-stepper">
+          <button class="snake-stepper-btn" id="goal-dec" onclick="adjustSetting('goal',-1)">−</button>
+          <span class="snake-stepper-val" id="goal-val">12</span>
+          <button class="snake-stepper-btn" id="goal-inc" onclick="adjustSetting('goal',+1)">+</button>
+        </div>
+      </div>
+      <div class="snake-setting-row">
+        <span class="snake-setting-label">📏 Wachstum</span>
+        <div class="snake-stepper">
+          <button class="snake-stepper-btn" id="grow-dec" onclick="adjustSetting('grow',-1)">−</button>
+          <span class="snake-stepper-val" id="grow-val">3</span>
+          <button class="snake-stepper-btn" id="grow-inc" onclick="adjustSetting('grow',+1)">+</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -225,10 +296,40 @@
     const SNAKE_ROWS = 15;
     const SNAKE_CELL = 24;
     const SNAKE_TICK = 160;
-    const SNAKE_GOAL = 12;
     const SNAKE_EGG_COLORS = ['#f4b8c8','#cbb8e8','#f5e060','#a8d0f4','#b4e0a0','#f8ccac'];
 
+    let snakeGoal = 12;
+    let snakeLengthIncrease = 3;
     let _sg = null;
+
+    function adjustSetting(key, delta) {
+      if (key === 'goal') {
+        snakeGoal = Math.min(20, Math.max(5, snakeGoal + delta));
+        document.getElementById('goal-val').textContent = snakeGoal;
+        document.getElementById('goal-label').textContent = snakeGoal;
+        document.getElementById('snake-score').textContent = `🥚 0 / ${snakeGoal}`;
+        document.getElementById('goal-dec').disabled = snakeGoal <= 5;
+        document.getElementById('goal-inc').disabled = snakeGoal >= 20;
+      } else {
+        snakeLengthIncrease = Math.min(5, Math.max(1, snakeLengthIncrease + delta));
+        document.getElementById('grow-val').textContent = snakeLengthIncrease;
+        document.getElementById('grow-dec').disabled = snakeLengthIncrease <= 1;
+        document.getElementById('grow-inc').disabled = snakeLengthIncrease >= 5;
+      }
+    }
+
+    function setSettingsDisabled(disabled) {
+      ['goal-dec','goal-inc','grow-dec','grow-inc'].forEach(id => {
+        document.getElementById(id).disabled = disabled;
+      });
+      if (!disabled) {
+        // Re-apply range limits after re-enabling
+        document.getElementById('goal-dec').disabled = snakeGoal <= 5;
+        document.getElementById('goal-inc').disabled = snakeGoal >= 20;
+        document.getElementById('grow-dec').disabled = snakeLengthIncrease <= 1;
+        document.getElementById('grow-inc').disabled = snakeLengthIncrease >= 5;
+      }
+    }
 
     function snakeStop() {
       if (_sg?.timer) clearInterval(_sg.timer);
@@ -240,8 +341,9 @@
       const canvas = document.getElementById('snake-canvas');
       if (!canvas) return;
 
+      setSettingsDisabled(true);
       _sg = {
-        goal:     SNAKE_GOAL,
+        goal:     snakeGoal,
         body:     [{x:7,y:7},{x:6,y:7},{x:5,y:7}],
         dir:      {x:1, y:0},
         next:     {x:1, y:0},
@@ -255,7 +357,7 @@
       _sg.food = snakeSpawnFood();
 
       document.getElementById('snake-overlay').style.display = 'none';
-      document.getElementById('snake-score').textContent = `🥚 0 / ${SNAKE_GOAL}`;
+      document.getElementById('snake-score').textContent = `🥚 0 / ${snakeGoal}`;
 
       // Swipe detection on canvas
       let _touch = null;
@@ -296,12 +398,12 @@
         _sg.score++;
         _sg.colorIdx = _sg.score % SNAKE_EGG_COLORS.length;
         const sc = document.getElementById('snake-score');
-        if (sc) sc.textContent = `🥚 ${_sg.score} / ${SNAKE_GOAL}`;
+        if (sc) sc.textContent = `🥚 ${_sg.score} / ${_sg.goal}`;
 
-        if (_sg.score >= SNAKE_GOAL) { snakeWin(); return; }
+        if (_sg.score >= _sg.goal) { snakeWin(); return; }
         _sg.food = snakeSpawnFood();
-        _sg.body.push({..._sg.body[_sg.body.length - 1]});
-        _sg.body.push({..._sg.body[_sg.body.length - 1]});
+        for (let i = 1; i < snakeLengthIncrease; i++)
+          _sg.body.push({..._sg.body[_sg.body.length - 1]});
       } else {
         _sg.body.pop();
       }
@@ -323,9 +425,10 @@
         if (!ov) return;
         ov.innerHTML = `
           <p class="snake-overlay-title">💥 Game Over!</p>
-          <p class="snake-overlay-sub">Gesammelt: ${score} / ${SNAKE_GOAL} 🥚</p>
+          <p class="snake-overlay-sub">Gesammelt: ${score} / ${snakeGoal} 🥚</p>
           <button class="btn btn-gold btn-md" onclick="snakeStart()">🔄 Nochmal</button>`;
         ov.style.display = '';
+        setSettingsDisabled(false);
       }, 500);
     }
 
@@ -345,9 +448,10 @@
         if (!ov) return;
         ov.innerHTML = `
           <p class="snake-overlay-title">🎉 Geschafft!</p>
-          <p class="snake-overlay-sub">Alle ${SNAKE_GOAL} Eier gesammelt!</p>
+          <p class="snake-overlay-sub">Alle ${snakeGoal} Eier gesammelt!</p>
           <button class="btn btn-gold btn-md" onclick="snakeStart()">🔄 Nochmal spielen</button>`;
         ov.style.display = '';
+        setSettingsDisabled(false);
       }, 700);
     }
 
@@ -456,6 +560,7 @@
 
     // Draw idle state on load
     snakeDrawIdle();
+    setSettingsDisabled(false);
   </script>
 </body>
 </html>
